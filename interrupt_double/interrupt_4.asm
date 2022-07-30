@@ -16,7 +16,7 @@
         ; Configura LED como write, restante como read.
      LDI R16,(1<<PB5)
      OUT DDRB,R16
-         ; Configura portal digital 8 e LED como pullUp e
+         ; Configura portal LED como pullUp e
      LDI R17,(1<<PB5)
      OUT PORTB,R17
 .ENDMACRO

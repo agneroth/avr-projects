@@ -1,11 +1,11 @@
 gavrasm Gerd's AVR assembler version 5.1 (C)2021 by DG4FAC
 ----------------------------------------------------------
 
-Path:        /home/anonimo/Desktop/sis_embarcados/avr-projects/interrupt_4/
+Path:        /home/anonimo/Desktop/sis_embarcados/avr-projects/interrupt_double/
 Source file: interrupt_4.asm
 Hex file:    interrupt_4.hex
 Eeprom file: interrupt_4.eep
-Compiled:    30.07.2022, 14:13:47
+Compiled:    30.07.2022, 16:29:41
 Pass:        2
 
      1: .MACRO CFG_STACK
@@ -26,7 +26,7 @@ Pass:        2
     16:         ; Configura LED como write, restante como read.
     17:      LDI R16,(1<<PB5)
     18:      OUT DDRB,R16
-    19:          ; Configura portal digital 8 e LED como pullUp e
+    19:          ; Configura portal LED como pullUp e
     20:      LDI R17,(1<<PB5)
     21:      OUT PORTB,R17
     22: .ENDMACRO
@@ -87,7 +87,7 @@ Pass:        2
     66:         ; Configura LED como write, restante como read.
     66: 000015   E200  LDI R16,(1<<PB5)
     66: 000016   B904  OUT DDRB,R16
-    66:          ; Configura portal digital 8 e LED como pullUp e
+    66:          ; Configura portal LED como pullUp e
     66: 000017   E210  LDI R17,(1<<PB5)
     66: 000018   B915  OUT PORTB,R17
     67:       CFG_HANDLER
@@ -137,4 +137,4 @@ Total program memory:       37 words.
 Eeprom space        :        0 bytes.
 Data segment        :        0 bytes.
 Compilation completed, no errors.
-Compilation ended 30.07.2022, 14:13:47
+Compilation ended 30.07.2022, 16:29:41
