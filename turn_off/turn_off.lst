@@ -1,0 +1,44 @@
+gavrasm Gerd's AVR assembler version 5.1 (C)2021 by DG4FAC
+----------------------------------------------------------
+
+Path:        /home/anonimo/Desktop/sis_embarcados/avr-projects/turn_off/
+Source file: turn_off.asm
+Hex file:    turn_off.hex
+Eeprom file: turn_off.eep
+Compiled:    28.07.2022, 15:44:31
+Pass:        2
+
+     1: .device ATMega328p
+     2: .org 0x00
+     3: 
+     4: 000000   C000  rjmp INIT
+     5: 
+     6: INIT:
+     7: 
+     8: 000001   E200  LDI R16,0x20
+     9: 000002   B904  OUT DDRB,R16
+    10: 000003   E010  LDI R17,0x00
+    11: 000004   B915  OUT PORTB,R17
+    12:     
+    13: 000005   CFFF  RJMP LOOP
+    14: 
+    15: 
+
+List of symbols:
+Type nDef nUsed             Decimalval           Hexval Name
+  T     1     1                    171               AB ATMEGA328P
+  L     1     2                      1               01 INIT
+  L     1     2                      5               05 LOOP
+  C     1     0                     22               16 NOW_Y
+  C     1     0                      7               07 NOW_M
+  C     1     0                     28               1C NOW_D
+  C     1     0                  44770             AEE2 NOW_I
+   No macros.
+
+Program             :        6 words.
+Constants           :        0 words.
+Total program memory:        6 words.
+Eeprom space        :        0 bytes.
+Data segment        :        0 bytes.
+Compilation completed, no errors.
+Compilation ended 28.07.2022, 15:44:31

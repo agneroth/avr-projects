@@ -1,0 +1,13 @@
+/avr_sim_project_file
+/home/anonimo/Desktop/sis_embarcados/avr-projects/interrupt_3/interrupt_3.asm
+mainasm=interrupt_3.asm
+file=interrupt_3.lst,30,30,33
+file=interrupt_3.asm,30,45,45
+clock=1000000
+device-type=ATmega328P
+device-package=32-pin-TQFP
+windows=acepstwz
+alert1=0,0,-1,-1,,0,0
+adcvref=5.0000
+adcvop=5.0000
+adcch=0.0000,0.0000,0.0000,0.0000,0.0000,0.0000

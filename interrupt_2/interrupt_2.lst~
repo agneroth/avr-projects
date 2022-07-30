@@ -1,0 +1,134 @@
+gavrasm Gerd's AVR assembler version 5.1 (C)2021 by DG4FAC
+----------------------------------------------------------
+
+Path:        /home/anonimo/Desktop/sis_embarcados/avr-projects/interrupt_2/
+Source file: interrupt_2.asm
+Hex file:    interrupt_2.hex
+Eeprom file: interrupt_2.eep
+Compiled:    28.07.2022, 16:24:17
+Pass:        2
+
+     1: .MACRO CFG_STACK
+     2:      LDI R16,HIGH(RAMEND) // R16 = RAMEND_HIGH
+     3:      OUT SPH,R16 // SPH = R16
+     4:      LDI R16,LOW(RAMEND) // ...
+     5:      OUT SPL,R16
+     6: .ENDMACRO
+     7: 
+     8: .MACRO CFG_PORT
+     9:      LDI R16,(1<<PD3)
+    10:      OUT DDRD,R16
+    11:      LDI R17,(1<<PD3)
+    12:      OUT PORTD,R17
+    13: .ENDMACRO
+    14: 
+    15: .MACRO CFG_HANDLER
+    16:      LDI R16,0x00
+    17:      sts EICRA,R16
+    18:      LDI R17,(1<<INT1)
+    19:      out EIMSK,R17
+    20: .ENDMACRO
+    21: 
+    22: .MACRO CFG_LED
+    23:      LDI R16,(1<<PB5)
+    24:      OUT DDRB,R16
+    25:      LDI R18,(1<<PB5)
+    26:      OUT PORTB,R18
+    27: .ENDMACRO
+    28: 
+    29: .MACRO HANDLER_MAIN
+    30:       CPI R18,(1<<PB5)
+    31:       BREQ TURN_OFF   ; ta ligado vai pra desligar
+    32:       RJMP TURN_OFF    ; ta desligado vai pra ligar
+    33: .ENDMACRO
+    34: 
+    35: // diz o microcontrolador especifico p/ o compilador
+    36: .device ATMega328p
+    37: // inicio da memoria de código
+    38: .org 0x0000
+    39: // pula pro inicio do código
+    40: 000000   C00E  rjmp   INIT
+    41: .org 0x0004
+    42: 000004   C000  rjmp HANDLER
+    43: 
+    44: 
+    45: 
+    46: 
+    47: 
+    48: 
+    49: HANDLER:
+    50: 000005   3220  CPI R18,0x20
+    51: 000006   F029  BREQ TURN_OFF
+    52: 000007   C001  RJMP TURN_ON
+    53: 
+    54: 
+    55: HANDLER_END:
+    56: 000008   9518  RETI
+    57: 
+    58: TURN_ON:
+    59: 000009   E220  LDI R18,(1<<PB5)        ; liga led
+    60: 00000A   B925  OUT PORTB,R18
+    61: 00000B   CFFC  rjmp HANDLER_END
+    62: 
+    63: 
+    64: TURN_OFF:                  ; desliga led
+    65: 00000C   E020  LDI R18, 0x00
+    66: 00000D   B925  OUT PORTB,R18
+    67: 00000E   CFF9  rjmp HANDLER_END
+    68: 
+    69: INIT:
+    70:       CFG_LED
+    70: 00000F   E200  LDI R16,(1<<PB5)
+    70: 000010   B904  OUT DDRB,R16
+    70: 000011   E220  LDI R18,(1<<PB5)
+    70: 000012   B925  OUT PORTB,R18
+    71:       CFG_STACK
+    71: 000013   E008  LDI R16,HIGH(RAMEND) // R16 = RAMEND_HIGH
+    71: 000014   BF0E  OUT SPH,R16 // SPH = R16
+    71: 000015   EF0F  LDI R16,LOW(RAMEND) // ...
+    71: 000016   BF0D  OUT SPL,R16
+    72:       CFG_PORT
+    72: 000017   E008  LDI R16,(1<<PD3)
+    72: 000018   B90A  OUT DDRD,R16
+    72: 000019   E018  LDI R17,(1<<PD3)
+    72: 00001A   B91B  OUT PORTD,R17
+    73:       CFG_HANDLER
+    73: 00001B   E000  LDI R16,0x00
+    73: 00001C   9300  sts EICRA,R16
+        00001D   0069
+    73: 00001E   E012  LDI R17,(1<<INT1)
+    73: 00001F   BB1D  out EIMSK,R17
+    74: 000020   9478  SEI
+    75: 
+    76: 000021   CFFF  RJMP LOOP
+    77: 
+
+List of symbols:
+Type nDef nUsed             Decimalval           Hexval Name
+  T     1     1                    171               AB ATMEGA328P
+  L     1     2                      5               05 HANDLER
+  L     1     4                      8               08 HANDLER_END
+  L     1     2                      9               09 TURN_ON
+  L     1     2                     12               0C TURN_OFF
+  L     1     2                     15               0F INIT
+  L     1     2                     33               21 LOOP
+  C     1     0                     22               16 NOW_Y
+  C     1     0                      7               07 NOW_M
+  C     1     0                     28               1C NOW_D
+  C     1     0                  44770             AEE2 NOW_I
+
+List of macros:
+nLines nUsed nParams Name
+     4     1       0 CFG_STACK
+     4     1       0 CFG_PORT
+     4     1       0 CFG_HANDLER
+     4     1       0 CFG_LED
+     3     0       0 HANDLER_MAIN
+
+Program             :       31 words.
+Constants           :        0 words.
+Total program memory:       31 words.
+Eeprom space        :        0 bytes.
+Data segment        :        0 bytes.
+Compilation completed, no errors.
+Compilation ended 28.07.2022, 16:24:17
