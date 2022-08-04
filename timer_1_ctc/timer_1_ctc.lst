@@ -1,0 +1,122 @@
+gavrasm Gerd's AVR assembler version 5.1 (C)2021 by DG4FAC
+----------------------------------------------------------
+
+Path:        /home/anonimo/Desktop/sis_embarcados/avr-projects/
+Source file: timer_1_ctc.asm
+Hex file:    timer_1_ctc.hex
+Eeprom file: timer_1_ctc.eep
+Compiled:    04.08.2022, 15:58:54
+Pass:        2
+
+     1: .device ATMega328p
+     2: 
+     3: .MACRO CFG_TIMER
+     4: ; habilita timer 1, configura CTC OCR1A
+     5:     LDI R16,(1<<CS12)|(1<<CS10)|(1<<WGM12)
+     6:     STS TCCR1B,R16
+     7:     LDI R16,0x00
+     8:     STS TCCR1A,R16
+     9: ; configura OCR
+    10:     LDI R16,0xFF
+    11:     STS OCR1AH,R16
+    12:     LDI R16,0xFF
+    13:     STS OCR1AL,R16
+    14: ; configura interrupt (overflow)
+    15:     LDI R16,(1<<TOIE1)
+    16:     STS TIMSK1,R16
+    17: .ENDMACRO
+    18: 
+    19: .MACRO CFG_LED
+    20:      LDI R18,0x20
+    21:      OUT DDRB,R18
+    22:      OUT PORTB,R18
+    23: .ENDMACRO
+    24: 
+    25: // diz o microcontrolador especifico p/ o compilador
+    26: 
+    27: // inicio da memoria de código
+    28: .org 0x0000
+    29: // pula pro inicio do código
+    30: 000000   C01A  rjmp   INIT
+    31: .org 0x001A
+    32: 00001A   C015  rjmp HANDLER
+    33: 
+    34: 
+    35: INIT: CFG_TIMER
+    35: ; habilita timer 1, configura CTC OCR1A
+    35: 00001B   E00D  LDI R16,(1<<CS12)|(1<<CS10)|(1<<WGM12)
+    35: 00001C   9300  STS TCCR1B,R16
+        00001D   0081
+    35: 00001E   E000  LDI R16,0x00
+    35: 00001F   9300  STS TCCR1A,R16
+        000020   0080
+    35: ; configura OCR
+    35: 000021   EF0F  LDI R16,0xFF
+    35: 000022   9300  STS OCR1AH,R16
+        000023   0089
+    35: 000024   EF0F  LDI R16,0xFF
+    35: 000025   9300  STS OCR1AL,R16
+        000026   0088
+    35: ; configura interrupt (overflow)
+    35: 000027   E001  LDI R16,(1<<TOIE1)
+    35: 000028   9300  STS TIMSK1,R16
+        000029   006F
+    36:       CFG_LED
+    36: 00002A   E220  LDI R18,0x20
+    36: 00002B   B924  OUT DDRB,R18
+    36: 00002C   B925  OUT PORTB,R18
+    37: 00002D   9478  SEI
+    38: 
+    39: 00002E   C000  RJMP LOOP
+    40: 
+    41: 00002F   CFFF  RJMP LOOP
+    42: 
+    43: HANDLER:
+    44: 000030   3220  CPI R18,0x20
+    45: 000031   F029  BREQ TURN_OFF   ; ta ligado vai pra desligar
+    46: 000032   C001  RJMP TURN_ON    ; ta desligado vai pra ligar
+    47: 
+    48: HANDLER_END:
+    49: 000033   9518  RETI
+    50: 
+    51: TURN_ON:
+    52: 000034   E220  LDI R18, 0x20        ; liga led
+    53: 000035   B925  OUT PORTB,R18
+    54: 000036   CFFC  rjmp HANDLER_END
+    55: 
+    56: 
+    57: TURN_OFF:                  ; desliga led
+    58: 000037   E020  LDI R18, 0x00
+    59: 000038   B925  OUT PORTB,R18
+    60: 000039   CFF9  rjmp HANDLER_END
+    61: 
+    62: 
+    63: 
+    64: 
+
+List of symbols:
+Type nDef nUsed             Decimalval           Hexval Name
+  T     1     1                    171               AB ATMEGA328P
+  L     1     2                     27               1B INIT
+  L     1     4                     47               2F LOOP
+  L     1     2                     48               30 HANDLER
+  L     1     4                     51               33 HANDLER_END
+  L     1     2                     52               34 TURN_ON
+  L     1     2                     55               37 TURN_OFF
+  C     1     0                     22               16 NOW_Y
+  C     1     0                      8               08 NOW_M
+  C     1     0                      4               04 NOW_D
+  C     1     0                  44777             AEE9 NOW_I
+
+List of macros:
+nLines nUsed nParams Name
+    13     1       0 CFG_TIMER
+     3     1       0 CFG_LED
+
+Program             :       33 words.
+Constants           :        0 words.
+Total program memory:       33 words.
+Eeprom space        :        0 bytes.
+Data segment        :        0 bytes.
+Compilation completed, no errors.
+Compilation ended 04.08.2022, 15:58:54
