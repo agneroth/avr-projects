@@ -1,8 +1,8 @@
 /avr_sim_project_file
-/home/anonimo/Desktop/sis_embarcados/avr-projects/interrupt_pcint0/interrupt_3.asm
-mainasm=interrupt_3.asm
-file=interrupt_3.lst,1,1,1
-file=interrupt_3.asm,1,25,16
+/home/anonimo/Desktop/sis_embarcados/avr-projects/timer_1/timer1.asm
+mainasm=timer1.asm
+file=timer1.lst,29,17,25
+file=timer1.asm,24,21,42
 clock=1000000, Div8
 device-type=ATmega328P
 device-package=32-pin-TQFP
