@@ -1,6 +1,12 @@
-.DEF LIST_POS = R17
+.device ATMega328p
+
+.dseg ; Data segment
+.org 0x100
+
+.DEF LIST_END = R17
 .DEF POS_A = R18
 .DEF POS_B = R19
+.DEF CANDIDATE = R20
 
 
 .MACRO CFG_SRAM
@@ -15,27 +21,53 @@
      OUT SPL,R16
 .ENDMACRO
 
-.MACRO FILL_RAM
-      LDI R16,0x00
-
-LOOP: ST X+,R16
-      INC R16,
-      CPI R16,0x08
-      BRNE LOOP
+; Carrega SRAM com ARRAY (code mem)
+.MACRO FILL_FROM_CMEM
+         LDI R30,LOW(ARRAY<<1)
+         LDI R31,HIGH(ARRAY<<1)
+         LDI R16,0x00
+         LPM R1,Z+
+         ST X+,R1
+         INC R16
+LOAD_LOOP:
+          LPM R1,Z+
+          ST X+,R1
+          INC LIST_END
+          INC R16
+          CPI R16,INITIAL_ARRAY_SIZE
+          BRNE LOAD_LOOP
 .ENDMACRO
 
-
-.device ATMega328p
+.cseg
 .org 0x00
 rjmp INIT
 
 INIT: CFG_SRAM
       CFG_STACK
-      FILL_RAM
-      LDI POS_A,0x00
-      LDI POS_B,0x03
+      FILL_FROM_CMEM
+      CALL ORDERLY_INSERT
+      RJMP LOOP
 
 
+; Uses R16, POS_A, POS_B, CANDIDATE and calls CHANGE_POSITION
+ORDERLY_INSERT:
+      LDI CANDIDATE,0x06 ; Carrega valor no registrador candidato
+      INC LIST_END
+      MOV XL,LIST_END ; Carrega o final da lista
+      MOV POS_A,LIST_END ; Salva a posição do valor inserido
+      ST X,CANDIDATE ; Insere o valor no final da lista
+SWITCH_POS_LOOP:
+      LD R16,-X ; Carrega o último valor da lista
+      MOV POS_B,XL ; Salva a posição atual
+      CP R16,CANDIDATE ; Compara se o último valor é igual ou maior
+      BRSH LOOP ; Se for, termina
+      CALL CHANGE_POSITION ; Senão, troca posição
+      MOV POS_A,POS_B ; Troca a posicao
+      CPI POS_A,0x00 ; Se a posição atual for 0, acaba.
+      BREQ LOOP
+      RJMP SWITCH_POS_LOOP ; Senão, reinicia
+
+; Uses POS_A, POS_B and R16
 CHANGE_POSITION:
       MOV XL,POS_A ; Carrega POS_A
       LD R16,X ; Carrega em R16 conteúdo de POS_A
@@ -47,6 +79,10 @@ CHANGE_POSITION:
       POP R16 ; Tira conteúdo (original) de POS_A do stack
       MOV XL,POS_B ; Carrega POS_B
       ST X,R16 ; Carrega conteúdo de R16 em POS_B
+      RET
 
 
-TRUE_LOOP: RJMP TRUE_LOOP
+LOOP: RJMP LOOP
+
+.equ INITIAL_ARRAY_SIZE = 3
+ARRAY: .db 4,1,0

@@ -1,0 +1,26 @@
+.device ATMega328p
+
+
+.dseg
+.org 0x100
+
+.cseg
+.org 0x00
+
+RJMP INIT
+
+INIT: LDI R30,LOW(ARRAY<<1)
+      LDI R31,HIGH(ARRAY<<1)
+      LDI R16,0x00
+LOAD_LOOP:
+LPM R1,Z+
+      INC R16
+      CPI R16,INITIAL_ARRAY_SIZE
+      BRNE LOAD_LOOP
+
+
+
+LOOP: RJMP LOOP
+
+.equ INITIAL_ARRAY_SIZE = 4
+ARRAY: .db 0,1,2,3

@@ -1,8 +1,8 @@
 /avr_sim_project_file
-/home/anonimo/Desktop/sis_embarcados/avr-projects/prova_1/prova-1.asm
-mainasm=prova-1.asm
-file=prova-1.lst,97,3,99
-file=prova-1.asm,39,16,49
+/home/anonimo/Desktop/sis_embarcados/avr-projects/from_code_2_mem/from_code_2_mem.asm
+mainasm=from_code_2_mem.asm
+file=from_code_2_mem.lst,9,49,34
+file=from_code_2_mem.asm,1,1,3
 clock=1000000
 device-type=ATmega328P
 device-package=32-pin-TQFP
