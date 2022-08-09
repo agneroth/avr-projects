@@ -1,0 +1,101 @@
+gavrasm Gerd's AVR assembler version 5.1 (C)2021 by DG4FAC
+----------------------------------------------------------
+
+Path:        /home/anonimo/Desktop/sis_embarcados/avr-projects/prova_1/
+Source file: prova-1.asm
+Hex file:    prova-1.hex
+Eeprom file: prova-1.eep
+Compiled:    09.08.2022, 11:40:36
+Pass:        2
+
+     1: .DEF LIST_POS = R17
+     2: .DEF POS_A = R18
+     3: .DEF POS_B = R19
+     4: 
+     5: .MACRO CFG_SRAM
+     6:        LDI XL,0x00
+     7:        LDI XH,0x01
+     8: .ENDMACRO
+     9: 
+    10: .MACRO CFG_STACK
+    11:      LDI R16,HIGH(RAMEND)
+    12:      OUT SPH,R16
+    13:      LDI R16,LOW(RAMEND)
+    14:      OUT SPL,R16
+    15: .ENDMACRO
+    16: 
+    17: .MACRO FILL_RAM
+    18:       LDI R16,0x00
+    19: 
+    20: LOOP: ST X+,R16
+    21:       INC R16,
+    22:       CPI R16,0x08
+    23:       BRNE LOOP
+    24: .ENDMACRO
+    25: 
+    26: 
+    27: .device ATMega328p
+    28: .org 0x00
+    29: 000000   C000  rjmp INIT
+    30: 
+    31: INIT: CFG_SRAM
+    31: 000001   E0A0  LDI XL,0x00
+    31: 000002   E0B1  LDI XH,0x01
+    32:       CFG_STACK
+    32: 000003   E008  LDI R16,HIGH(RAMEND)
+    32: 000004   BF0E  OUT SPH,R16
+    32: 000005   EF0F  LDI R16,LOW(RAMEND)
+    32: 000006   BF0D  OUT SPL,R16
+    33:       FILL_RAM
+    33: 000007   E000  LDI R16,0x00
+    33: 000008   930D  ST X+,R16
+    33: 000009   9503  INC R16,
+    33: 00000A   3008  CPI R16,0x08
+    33: 00000B   F7E1  BRNE LOOP
+    34: 00000C   E020  LDI POS_A,0x00
+    35: 00000D   E033  LDI POS_B,0x03
+    36: 
+    37: 
+    38: CHANGE_POSITION:
+    39: 00000E   2FA2  MOV XL,POS_A ; Carrega POS_A
+    40: 00000F   910C  LD R16,X ; Carrega em R16 conteúdo de POS_A
+    41: 000010   930F  PUSH R16 ; Bota conteúdo de POS_A no stack
+    42: 000011   2FA3  MOV XL,POS_B ; Carrega POS_B
+    43: 000012   910C  LD R16,X ; Carrega em R16 conteúdo de POS_B
+    44: 000013   2FA2  MOV XL,POS_A ; Carrega POS_A
+    45: 000014   930C  ST X,R16 ; Carrega conteúdo de R16 em POS_A
+    46: 000015   910F  POP R16 ; Tira conteúdo (original) de POS_A do stack
+    47: 000016   2FA3  MOV XL,POS_B ; Carrega POS_B
+    48: 000017   930C  ST X,R16 ; Carrega conteúdo de R16 em POS_B
+    49: 
+    50: 
+    51: 000018   CFFF  RJMP TRUE_LOOP
+
+List of symbols:
+Type nDef nUsed             Decimalval           Hexval Name
+  T     1     1                    171               AB ATMEGA328P
+  L     1     2                      1               01 INIT
+  L     1     2                      8               08 LOOP@FILL_RAM@1
+  L     1     0                     14               0E CHANGE_POSITION
+  L     1     2                     24               18 TRUE_LOOP
+  R     1     0                     17               11 LIST_POS
+  R     1     3                     18               12 POS_A
+  R     1     3                     19               13 POS_B
+  C     1     0                     22               16 NOW_Y
+  C     1     0                      8               08 NOW_M
+  C     1     0                      9               09 NOW_D
+  C     1     0                  44782             AEEE NOW_I
+
+List of macros:
+nLines nUsed nParams Name
+     2     1       0 CFG_SRAM
+     4     1       0 CFG_STACK
+     6     1       0 FILL_RAM
+
+Program             :       25 words.
+Constants           :        0 words.
+Total program memory:       25 words.
+Eeprom space        :        0 bytes.
+Data segment        :        0 bytes.
+Compilation completed, no errors.
+Compilation ended 09.08.2022, 11:40:36
