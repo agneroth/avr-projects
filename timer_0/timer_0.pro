@@ -1,12 +1,12 @@
 /avr_sim_project_file
-/home/anonimo/Desktop/sis_embarcados/avr-projects/prova_1/prova-1.asm
-mainasm=prova-1.asm
-file=prova-1.lst,35,3,99
-file=prova-1.asm,1,72,21
+/home/anonimo/Desktop/sis_embarcados/avr-projects/timer_0.asm
+mainasm=timer_0.asm
+file=timer_0.lst,1,2,1
+file=timer_0.asm,1,4,40
 clock=1000000
 device-type=ATmega328P
 device-package=32-pin-TQFP
-windows=acepStwz
+windows=acepsTwz
 alert1=0,0,-1,-1,,0,0
 adcvref=5.0000
 adcvop=5.0000
