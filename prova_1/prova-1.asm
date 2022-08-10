@@ -25,21 +25,21 @@
 .ENDMACRO
 
 .MACRO CFG_INPUT_PINS
-       LDI R22,0x00
+       LDI R16,(1<<PD6)
        OUT DDRD,R16
 .ENDMACRO
 
 .MACRO CFG_OUTPUT_PINS
-       LDI R21,(1<<PC0)|(1<<PC1)|(1<<PC2)
-       OUT DDRC,R21
-       LDI R21,0x00
+       LDI R16,(1<<PC0)|(1<<PC1)|(1<<PC2)
+       OUT DDRC,R16
+       LDI R16,0x00
        OUT PORTC,R21
 .ENDMACRO
 
 .MACRO CFG_LED
-     LDI R17,(1<<PB5)
-     OUT DDRB,R17
-     OUT PORTB,R17
+     LDI LED_STATUS,(1<<PB5)
+     OUT DDRB,LED_STATUS
+     OUT PORTB,LED_STATUS
 .ENDMACRO
 
 .MACRO CFG_TIMER
@@ -52,6 +52,25 @@
 ; configura interrupt (overflow)
     LDI R16,(1<<TOIE1)
     STS TIMSK1,R16
+.ENDMACRO
+
+
+.MACRO CFG_TIMER_OCR
+       ; Timer 0 - 8 bits - TCNT0
+       ; Internal clock/1024 -> CS02:0 = 101 (register TCCR0B)
+       ; CTC -> WGM02:0 = 010 (registers TCCR0A and TCCR0B)
+       ; Count to 0xFF -> OCR0A = 0xFF
+       ; On compare match OCR0A toggle pin6 -> COM0A1:0 = 01 (register TCCR0A)
+       CLR R16
+       OUT TCNT0,R16
+       OUT TCCR0A,R16
+       OUT TCCR0B,R16
+       LDI R16,(1<<WGM01)|(0<<WGM00)
+       OUT TCCR0A,R16
+       LDI R16,(1<<CS02)|(1<<CS00)|(0<<WGM02)
+       OUT TCCR0B,R16
+       LDI R16,0xFF
+       OUT OCR0A,R16
 .ENDMACRO
 
 .dseg ; Data segment
@@ -74,6 +93,7 @@ INIT: CFG_SRAM
       CFG_OUTPUT_PINS
       CFG_LED
       CFG_TIMER
+      CFG_TIMER_OCR
       CALL UPDATE_OUTPUT
       SEI
 
@@ -190,11 +210,15 @@ TOGGLE_LED:
 TURN_ON:
         LDI LED_STATUS,(1<<PB5)
         OUT PORTB,LED_STATUS
+        LDI R16,(0<<COM0A1)|(1<<COM0A0)|(1<<WGM01)|(0<<WGM00)
+        OUT TCCR0A,R16
         RET
 
 TURN_OFF:
         LDI LED_STATUS,0x00
         OUT PORTB,LED_STATUS
+        LDI R16,(1<<WGM01)|(0<<WGM00)
+        OUT TCCR0A,R16
         RET
 
 .equ INITIAL_ARRAY_SIZE = 1

@@ -5,7 +5,7 @@ Path:        /home/anonimo/Desktop/sis_embarcados/avr-projects/timer_0/
 Source file: timer_0.asm
 Hex file:    timer_0.hex
 Eeprom file: timer_0.eep
-Compiled:    10.08.2022, 11:31:29
+Compiled:    10.08.2022, 11:44:52
 Pass:        2
 
      1: .include "m328Pdef.inc"
@@ -29,8 +29,8 @@ Pass:        2
     16:        OUT TCCR0B,R16
     17:        LDI R16,0xFF
     18:        OUT OCR0A,R16
-    19:        LDI R16,(1<<OCIE0A)
-    20:        STS TIMSK0,R16
+    19:        ;LDI R16,(1<<OCIE0A)
+    20:        ;STS TIMSK0,R16
     21:        LDI R16,0xFF
     22:        OUT DDRD,R16
     23: .ENDMACRO
@@ -70,15 +70,14 @@ Pass:        2
     39: 00000D   BD05  OUT TCCR0B,R16
     39: 00000E   EF0F  LDI R16,0xFF
     39: 00000F   BD07  OUT OCR0A,R16
-    39: 000010   E002  LDI R16,(1<<OCIE0A)
-    39: 000011   9300  STS TIMSK0,R16
-        000012   006E
-    39: 000013   EF0F  LDI R16,0xFF
-    39: 000014   B90A  OUT DDRD,R16
-    40: 000015   9478  SEI
+    39:        ;LDI R16,(1<<OCIE0A)
+    39:        ;STS TIMSK0,R16
+    39: 000010   EF0F  LDI R16,0xFF
+    39: 000011   B90A  OUT DDRD,R16
+    40: ;SEI
     41: 
     42: 
-    43: 000016   CFFF  RJMP LOOP
+    43: 000012   CFFF  RJMP LOOP
     44: 
     45: .org 0x001C
     46: 00001C   C000  RJMP HANDLER
@@ -109,7 +108,7 @@ List of symbols:
 Type nDef nUsed             Decimalval           Hexval Name
   T     1     1                    171               AB ATMEGA328P
   L     1     2                      1               01 INIT
-  L     1     2                     22               16 LOOP
+  L     1     2                     18               12 LOOP
   L     1     2                     29               1D HANDLER
   L     1     4                     32               20 HANDLER_END
   L     1     2                     33               21 TURN_ON
@@ -124,10 +123,10 @@ nLines nUsed nParams Name
     19     1       0 CFG_TIMER
      5     1       0 CFG_LED
 
-Program             :       34 words.
+Program             :       30 words.
 Constants           :        0 words.
-Total program memory:       34 words.
+Total program memory:       30 words.
 Eeprom space        :        0 bytes.
 Data segment        :        0 bytes.
 Compilation completed, no errors.
-Compilation ended 10.08.2022, 11:31:29
+Compilation ended 10.08.2022, 11:44:52
