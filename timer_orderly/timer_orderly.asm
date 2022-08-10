@@ -11,25 +11,6 @@
 .DEF CANDIDATE = R20
 .DEF LED_STATUS = R21
 
-.MACRO FILL_FROM_CMEM
-         LDI LIST_END,0x00
-         LDI R30,LOW(ARRAY<<1)
-         LDI R31,HIGH(ARRAY<<1)
-         LDI R16,0x00
-         LPM R1,Z+
-         ST X+,R1
-         INC R16
-
-LOAD_LOOP:
-          LPM R1,Z+
-          ST X+,R1
-          INC LIST_END
-          INC R16
-          CPI R16,INITIAL_ARRAY_SIZE
-          BRNE LOAD_LOOP
-
-.ENDMACRO
-
 .MACRO CFG_SRAM
        LDI XL,0x00
        LDI XH,0x01
@@ -87,7 +68,7 @@ rjmp BASIC
 
 INIT: CFG_SRAM
       CFG_STACK
-      FILL_FROM_CMEM
+      CALL FILL_FROM_CMEM
       CFG_INPUT_PINS
       CFG_OUTPUT_PINS
       CFG_LED
@@ -96,6 +77,26 @@ INIT: CFG_SRAM
       SEI
 
 LOOP: RJMP LOOP
+
+FILL_FROM_CMEM:
+         LDI LIST_END,0x00
+         LDI R30,LOW(ARRAY<<1)
+         LDI R31,HIGH(ARRAY<<1)
+         LDI R16,0x00
+         LPM R1,Z+
+         ST X+,R1
+         INC R16
+         CPI R16,INITIAL_ARRAY_SIZE
+         BREQ LOAD_END
+LOAD_LOOP:
+          LPM R1,Z+
+          ST X+,R1
+          INC LIST_END
+          INC R16
+          CPI R16,INITIAL_ARRAY_SIZE
+          BRNE LOAD_LOOP
+LOAD_END: RET
+
 
 
 BASIC:
@@ -193,6 +194,6 @@ TURN_OFF:
         RET
 
 .equ INITIAL_ARRAY_SIZE = 1
-ARRAY: .db 0
+ARRAY: .db 3
 
 
