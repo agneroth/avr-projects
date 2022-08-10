@@ -1,8 +1,8 @@
 /avr_sim_project_file
-/home/anonimo/Desktop/sis_embarcados/avr-projects/timer_0/timer_0.asm
-mainasm=timer_0.asm
-file=timer_0.lst,98,3,98
-file=timer_0.asm,1,45,23
+/home/anonimo/Desktop/sis_embarcados/avr-projects/prova_1/prova-1.asm
+mainasm=prova-1.asm
+file=prova-1.lst,165,4,180
+file=prova-1.asm,1,32,8
 clock=1000000, Div8
 device-type=ATmega328P
 device-package=32-pin-TQFP

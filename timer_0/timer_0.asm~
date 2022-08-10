@@ -10,9 +10,9 @@
        OUT TCNT0,R16
        OUT TCCR0A,R16
        OUT TCCR0B,R16
-       LDI R16,(1<<COM0A0)|(0<<WGM00)
+       LDI R16,(0<<COM0A1)|(1<<COM0A0)|(1<<WGM01)|(0<<WGM00)
        OUT TCCR0A,R16
-       LDI R16,(1<<CS02)|(1<<CS00)
+       LDI R16,(1<<CS02)|(1<<CS00)|(0<<WGM02)
        OUT TCCR0B,R16
        LDI R16,0xFF
        OUT OCR0A,R16

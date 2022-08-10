@@ -1,16 +1,16 @@
 gavrasm Gerd's AVR assembler version 5.1 (C)2021 by DG4FAC
 ----------------------------------------------------------
 
-Path:        /home/anonimo/Desktop/sis_embarcados/avr-projects/
+Path:        /home/anonimo/Desktop/sis_embarcados/avr-projects/timer_0/
 Source file: timer_0.asm
 Hex file:    timer_0.hex
 Eeprom file: timer_0.eep
-Compiled:    09.08.2022, 17:52:02
+Compiled:    10.08.2022, 11:31:29
 Pass:        2
 
      1: .include "m328Pdef.inc"
  -> Warning 009: Include defs not necessary, using internal values!
-   File: /home/anonimo/Desktop/sis_embarcados/avr-projects/timer_0.asm, Line: 1
+   File: /home/anonimo/Desktop/sis_embarcados/avr-projects/timer_0/timer_0.asm, Line: 1
    Source line: .include "m328Pdef.inc"
      2: 
      3: .MACRO CFG_TIMER
@@ -23,9 +23,9 @@ Pass:        2
     10:        OUT TCNT0,R16
     11:        OUT TCCR0A,R16
     12:        OUT TCCR0B,R16
-    13:        LDI R16,(1<<COM0A0)|(0<<WGM00)
+    13:        LDI R16,(0<<COM0A1)|(1<<COM0A0)|(1<<WGM01)|(0<<WGM00)
     14:        OUT TCCR0A,R16
-    15:        LDI R16,(1<<CS02)|(1<<CS00)
+    15:        LDI R16,(1<<CS02)|(1<<CS00)|(0<<WGM02)
     16:        OUT TCCR0B,R16
     17:        LDI R16,0xFF
     18:        OUT OCR0A,R16
@@ -64,9 +64,9 @@ Pass:        2
     39: 000007   BD06  OUT TCNT0,R16
     39: 000008   BD04  OUT TCCR0A,R16
     39: 000009   BD05  OUT TCCR0B,R16
-    39: 00000A   E400  LDI R16,(1<<COM0A0)|(0<<WGM00)
+    39: 00000A   E402  LDI R16,(0<<COM0A1)|(1<<COM0A0)|(1<<WGM01)|(0<<WGM00)
     39: 00000B   BD04  OUT TCCR0A,R16
-    39: 00000C   E005  LDI R16,(1<<CS02)|(1<<CS00)
+    39: 00000C   E005  LDI R16,(1<<CS02)|(1<<CS00)|(0<<WGM02)
     39: 00000D   BD05  OUT TCCR0B,R16
     39: 00000E   EF0F  LDI R16,0xFF
     39: 00000F   BD07  OUT OCR0A,R16
@@ -116,8 +116,8 @@ Type nDef nUsed             Decimalval           Hexval Name
   L     1     2                     36               24 TURN_OFF
   C     1     0                     22               16 NOW_Y
   C     1     0                      8               08 NOW_M
-  C     1     0                      9               09 NOW_D
-  C     1     0                  44782             AEEE NOW_I
+  C     1     0                     10               0A NOW_D
+  C     1     0                  44783             AEEF NOW_I
 
 List of macros:
 nLines nUsed nParams Name
@@ -130,4 +130,4 @@ Total program memory:       34 words.
 Eeprom space        :        0 bytes.
 Data segment        :        0 bytes.
 Compilation completed, no errors.
-Compilation ended 09.08.2022, 17:52:02
+Compilation ended 10.08.2022, 11:31:29
