@@ -1,9 +1,9 @@
 /avr_sim_project_file
 /home/anonimo/Desktop/sis_embarcados/avr-projects/prova_1/prova-1.asm
 mainasm=prova-1.asm
-file=prova-1.lst,35,3,99
-file=prova-1.asm,1,72,21
-clock=1000000
+file=prova-1.lst,47,30,76
+file=prova-1.asm,46,26,51
+clock=1000000, Div8
 device-type=ATmega328P
 device-package=32-pin-TQFP
 windows=acepStwz

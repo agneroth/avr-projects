@@ -45,13 +45,15 @@ rjmp INIT
 INIT: CFG_SRAM
       CFG_STACK
       FILL_FROM_CMEM
+      LDI CANDIDATE,0x06
+      CALL ORDERLY_INSERT ; Carrega valor no registrador candidato
+      LDI CANDIDATE,0x03 ;
       CALL ORDERLY_INSERT
       RJMP LOOP
 
 
 ; Uses R16, POS_A, POS_B, CANDIDATE and calls CHANGE_POSITION
 ORDERLY_INSERT:
-      LDI CANDIDATE,0x06 ; Carrega valor no registrador candidato
       INC LIST_END
       MOV XL,LIST_END ; Carrega o final da lista
       MOV POS_A,LIST_END ; Salva a posição do valor inserido
@@ -60,13 +62,16 @@ SWITCH_POS_LOOP:
       LD R16,-X ; Carrega o último valor da lista
       MOV POS_B,XL ; Salva a posição atual
       CP R16,CANDIDATE ; Compara se o último valor é igual ou maior
-      BRSH LOOP ; Se for, termina
+      BRSH HANDLER_END ; Se for, termina
       CALL CHANGE_POSITION ; Senão, troca posição
       MOV POS_A,POS_B ; Troca a posicao
       CPI POS_A,0x00 ; Se a posição atual for 0, acaba.
-      BREQ LOOP
+      BREQ HANDLER_END
       RJMP SWITCH_POS_LOOP ; Senão, reinicia
 
+
+HANDLER_END:
+      RET
 ; Uses POS_A, POS_B and R16
 CHANGE_POSITION:
       MOV XL,POS_A ; Carrega POS_A

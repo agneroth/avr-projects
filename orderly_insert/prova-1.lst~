@@ -1,0 +1,292 @@
+gavrasm Gerd's AVR assembler version 5.1 (C)2021 by DG4FAC
+----------------------------------------------------------
+
+Path:        /home/anonimo/Desktop/sis_embarcados/avr-projects/prova_1/
+Source file: prova-1.asm
+Hex file:    prova-1.hex
+Eeprom file: prova-1.eep
+Compiled:    09.08.2022, 21:43:57
+Pass:        2
+
+     1: .device ATMega328p
+     2: 
+     3: .dseg ; Data segment
+     4: .org 0x100
+     5: 
+     6: .equ INPORT0 = 2
+     7: .equ INPORT1 = 3
+     8: .equ INPORT2 = 4
+     9: 
+    10: .DEF LIST_END = R17
+    11: .DEF POS_A = R18
+    12: .DEF POS_B = R19
+    13: .DEF CANDIDATE = R20
+    14: 
+    15: .MACRO CFG_LED
+    16:      LDI R16,(1<<PB5)
+    17:      OUT DDRB,R17
+    18:      LDI R16,0x00
+    19:      OUT PORTB,R16
+    20: .ENDMACRO
+    21: 
+    22: .MACRO CFG_SRAM
+    23:        LDI XL,0x00
+    24:        LDI XH,0x01
+    25: .ENDMACRO
+    26: 
+    27: .MACRO CFG_STACK
+    28:      LDI R16,HIGH(RAMEND)
+    29:      OUT SPH,R16
+    30:      LDI R16,LOW(RAMEND)
+    31:      OUT SPL,R16
+    32: .ENDMACRO
+    33: 
+    34: ; Carrega SRAM com ARRAY (code mem)
+    35: .MACRO FILL_FROM_CMEM
+    36:          LDI R30,LOW(ARRAY<<1)
+    37:          LDI R31,HIGH(ARRAY<<1)
+    38:          LDI R16,0x00
+    39:          LPM R1,Z+
+    40:          ST X+,R1
+    41:          INC R16
+    42: LOAD_LOOP:
+    43:           LPM R1,Z+
+    44:           ST X+,R1
+    45:           INC LIST_END
+    46:           INC R16
+    47:           CPI R16,INITIAL_ARRAY_SIZE
+    48:           BRNE LOAD_LOOP
+    49: .ENDMACRO
+    50: 
+    51: .MACRO CFG_TIMER0
+    52:        ; Timer 0 - 8 bits - TCNT0
+    53:        ; Internal clock/1024 -> CS02:0 = 101 (register TCCR0B)
+    54:        ; CTC -> WGM02:0 = 010 (registers TCCR0A and TCCR0B)
+    55:        ; Count to 0xFF -> OCR0A = 0xFF
+    56:        ; On compare match OCR0A toggle pin6 -> COM0A1:0 = 01 (register TCCR0A)
+    57:        CLR R16
+    58:        OUT TCNT0,R16 ; Limpa registradores
+    59:        OUT TCCR0A,R16
+    60:        OUT TCCR0B,R16
+    61:        LDI R16,(0<<WGM00)
+    62:        OUT TCCR0A,R16
+    63:        LDI R16,(1<<CS02)|(1<<CS00)
+    64:        OUT TCCR0B,R16
+    65:        LDI R16,0xFF
+    66:        OUT OCR0A,R16
+    67: .ENDMACRO
+    68: 
+    69: .MACRO CFG_INPUT_PINS
+    70:        LDI R16,(1<<PD6)
+    71:        OUT DDRD,R16
+    72: .ENDMACRO
+    73: 
+    74: .MACRO CFG_OUTPUT_PINS
+    75:        LDI R16,(1<<PC0)|(1<<PC1)|(1<<PC2)
+    76:        OUT DDRC,R21
+    77:        LDI R16,0x00
+    78:        OUT PORTC,R21
+    79: .ENDMACRO
+    80: 
+    81: .MACRO CFG_TIMER1
+    82: ; habilita timer 1
+    83:     LDI R16,(1<<CS12)
+    84:     STS TCCR1B,R16
+    85: ; configura modo normal
+    86:     LDI R16,0x00
+    87:     STS TCCR1A,R16
+    88: ; configura interrupt (overflow)
+    89:     LDI R16,(1<<TOIE1)
+    90:     STS TIMSK1,R16
+    91: .ENDMACRO
+    92: 
+    93: .cseg
+    94: .org 0x0000
+    95: 000000   C01A  rjmp INIT
+    96: .org 0x001A
+    97: 00001A   C042  rjmp HANDLER
+    98: 
+    99: 
+   100: INIT: CFG_SRAM
+   100: 00001B   E0A0  LDI XL,0x00
+   100: 00001C   E0B1  LDI XH,0x01
+   101:       CFG_STACK
+   101: 00001D   E008  LDI R16,HIGH(RAMEND)
+   101: 00001E   BF0E  OUT SPH,R16
+   101: 00001F   EF0F  LDI R16,LOW(RAMEND)
+   101: 000020   BF0D  OUT SPL,R16
+   102:       CFG_INPUT_PINS ; Also configures Timer0
+   102: 000021   E400  LDI R16,(1<<PD6)
+   102: 000022   B90A  OUT DDRD,R16
+   103:       CFG_OUTPUT_PINS
+   103: 000023   E007  LDI R16,(1<<PC0)|(1<<PC1)|(1<<PC2)
+   103: 000024   B957  OUT DDRC,R21
+   103: 000025   E000  LDI R16,0x00
+   103: 000026   B958  OUT PORTC,R21
+   104:       CFG_TIMER1
+   104: ; habilita timer 1
+   104: 000027   E004  LDI R16,(1<<CS12)
+   104: 000028   9300  STS TCCR1B,R16
+        000029   0081
+   104: ; configura modo normal
+   104: 00002A   E000  LDI R16,0x00
+   104: 00002B   9300  STS TCCR1A,R16
+        00002C   0080
+   104: ; configura interrupt (overflow)
+   104: 00002D   E001  LDI R16,(1<<TOIE1)
+   104: 00002E   9300  STS TIMSK1,R16
+        00002F   006F
+   105:       CFG_LED
+   105: 000030   E200  LDI R16,(1<<PB5)
+   105: 000031   B914  OUT DDRB,R17
+   105: 000032   E000  LDI R16,0x00
+   105: 000033   B905  OUT PORTB,R16
+   106:       FILL_FROM_CMEM
+   106: 000034   EEEC  LDI R30,LOW(ARRAY<<1)
+   106: 000035   E0F0  LDI R31,HIGH(ARRAY<<1)
+   106: 000036   E000  LDI R16,0x00
+   106: 000037   9015  LPM R1,Z+
+   106: 000038   921D  ST X+,R1
+   106: 000039   9503  INC R16
+   106: LOAD_LOOP:
+   106: 00003A   9015  LPM R1,Z+
+   106: 00003B   921D  ST X+,R1
+   106: 00003C   9513  INC LIST_END
+   106: 00003D   9503  INC R16
+   106: 00003E   3003  CPI R16,INITIAL_ARRAY_SIZE
+   106: 00003F   F7D1  BRNE LOAD_LOOP
+   107: 000040   9478  SEI
+   108: 000041   C000  RJMP LOOP
+   109: 
+   110: 000042   CFFF  RJMP LOOP
+   111: 
+   112: ; Uses R16, POS_A, POS_B, CANDIDATE and calls CHANGE_POSITION
+   113: ORDERLY_INSERT:
+   114: 000043   9513  INC LIST_END
+   115: 000044   2FA1  MOV XL,LIST_END ; Carrega o final da lista
+   116: 000045   2F21  MOV POS_A,LIST_END ; Salva a posição do valor inserido
+   117: 000046   934C  ST X,CANDIDATE ; Insere o valor no final da lista
+   118: SWITCH_POS_LOOP:
+   119: 000047   910E  LD R16,-X ; Carrega o último valor da lista
+   120: 000048   2F3A  MOV POS_B,XL ; Salva a posição atual
+   121: 000049   1704  CP R16,CANDIDATE ; Compara se o último valor é igual ou maior
+   122: 00004A   F430  BRSH ORDERLY_END ; Se for, termina
+   123: 00004B   940E  CALL CHANGE_POSITION ; Senão, troca posição
+        00004C   0052
+   124: 00004D   2F23  MOV POS_A,POS_B ; Troca a posicao
+   125: 00004E   3020  CPI POS_A,0x00 ; Se a posição atual for 0, acaba.
+   126: 00004F   F009  BREQ ORDERLY_END
+   127: 000050   CFF6  RJMP SWITCH_POS_LOOP ; Senão, reinicia
+   128: 000051   9508  RET
+   129: 
+   130: ; Uses POS_A, POS_B and R16
+   131: CHANGE_POSITION:
+   132: 000052   2FA2  MOV XL,POS_A ; Carrega POS_A
+   133: 000053   910C  LD R16,X ; Carrega em R16 conteúdo de POS_A
+   134: 000054   930F  PUSH R16 ; Bota conteúdo de POS_A no stack
+   135: 000055   2FA3  MOV XL,POS_B ; Carrega POS_B
+   136: 000056   910C  LD R16,X ; Carrega em R16 conteúdo de POS_B
+   137: 000057   2FA2  MOV XL,POS_A ; Carrega POS_A
+   138: 000058   930C  ST X,R16 ; Carrega conteúdo de R16 em POS_A
+   139: 000059   910F  POP R16 ; Tira conteúdo (original) de POS_A do stack
+   140: 00005A   2FA3  MOV XL,POS_B ; Carrega POS_B
+   141: 00005B   930C  ST X,R16 ; Carrega conteúdo de R16 em POS_B
+   142: 00005C   9508  RET
+   143: 
+   144: 
+   145: .MACRO HANDLER_BEGIN
+   146:       PUSH R16
+   147:       IN R16,SREG
+   148:       PUSH R16
+   149:       PUSH XL
+   150:       PUSH CANDIDATE
+   151: .ENDMACRO
+   152: 
+   153: HANDLER:
+   154: 00005D   B109  IN R16,PIND
+   155: 00005E   E010  LDI R17,0x00
+   156: 00005F   FD04  SBRC R16,INPORT2 ; Pula se PIND[INPORT2] estiver OFF
+   157: 000060   6012  SBR R17,2
+   158: 000061   FD03  SBRC R16,INPORT1 ; Pula se PIND[INPORT1] estiver OFF
+   159: 000062   6011  SBR R17,1
+   160: 000063   FD02  SBRC R16,INPORT0 ; Pula se PIND[INPORT0] estiver OFF
+   161: 000064   6010  SBR R17,0
+   162: 000065   940E  CALL ORDERLY_INSERT
+        000066   0043
+   163: 000067   2FA1  MOV XL,LIST_END
+   164: 000068   910C  LD R16,X
+   165: 000069   3007  CPI R16,0x07
+   166: 00006A   F039  BREQ TURN_ON
+   167: 00006B   C008  RJMP TURN_OFF
+   168: 
+   169: HANDLER_END:
+   170: 00006C   914F  POP CANDIDATE
+   171: 00006D   91AF  POP XL
+   172: 00006E   910F  POP R16
+   173: 00006F   BF0F  OUT SREG,R16
+   174: 000070   910F  POP R16
+   175: 000071   9518  RETI
+   176: 
+   177: TURN_ON:
+   178: 000072   E200  LDI R16,(1<<PB5)
+   179: 000073   B905  OUT PORTB,R16
+   180: 
+   181: TURN_OFF:
+   182: 000074   E000  LDI R16,0x00
+   183: 000075   B905  OUT PORTB,R16
+   184: 
+   185: 
+   186: .equ INITIAL_ARRAY_SIZE = 3
+   187: ARRAY: .db 4,1,0
+ -> Warning 004: Number of bytes on line is odd, added 00 to fit program memory!
+   File: /home/anonimo/Desktop/sis_embarcados/avr-projects/prova_1/prova-1.asm, Line: 187
+   Source line: ARRAY: .db 4,1,0
+        000076 0104 0000
+
+List of symbols:
+Type nDef nUsed             Decimalval           Hexval Name
+  T     1     1                    171               AB ATMEGA328P
+  L     1     2                     27               1B INIT
+  L     1     2                     58               3A LOAD_LOOP@FILL_FROM_CMEM@1
+  L     1     4                     66               42 LOOP
+  L     1     1                     67               43 ORDERLY_INSERT
+  L     1     2                     71               47 SWITCH_POS_LOOP
+  L     1     4                     81               51 ORDERLY_END
+  L     1     1                     82               52 CHANGE_POSITION
+  L     1     2                     93               5D HANDLER
+  L     1     0                    108               6C HANDLER_END
+  L     1     2                    114               72 TURN_ON
+  L     1     2                    116               74 TURN_OFF
+  L     1     2                    118               76 ARRAY
+  R     1     5                     17               11 LIST_END
+  R     1     5                     18               12 POS_A
+  R     1     4                     19               13 POS_B
+  R     1     3                     20               14 CANDIDATE
+  C     1     0                     22               16 NOW_Y
+  C     1     0                      8               08 NOW_M
+  C     1     0                      9               09 NOW_D
+  C     1     0                  44782             AEEE NOW_I
+  C     1     1                      2               02 INPORT0
+  C     1     1                      3               03 INPORT1
+  C     1     1                      4               04 INPORT2
+  C     1     1                      3               03 INITIAL_ARRAY_SIZE
+
+List of macros:
+nLines nUsed nParams Name
+     4     1       0 CFG_LED
+     2     1       0 CFG_SRAM
+     4     1       0 CFG_STACK
+    13     1       0 FILL_FROM_CMEM
+    15     0       0 CFG_TIMER0
+     2     1       0 CFG_INPUT_PINS
+     4     1       0 CFG_OUTPUT_PINS
+     9     1       0 CFG_TIMER1
+     5     0       0 HANDLER_BEGIN
+
+Program             :       93 words.
+Constants           :        2 words.
+Total program memory:       95 words.
+Eeprom space        :        0 bytes.
+Data segment        :        0 bytes.
+Compilation completed, no errors.
+Compilation ended 09.08.2022, 21:43:57
