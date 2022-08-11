@@ -1,8 +1,8 @@
 /avr_sim_project_file
-/home/anonimo/Desktop/sis_embarcados/avr-projects/timer_copy_3_ports/timer_copy_3_ports.asm
+/home/anonimo/Desktop/sis_embarcados/avr-projects/timer_1_port_forward/timer_copy_3_ports.asm
 mainasm=timer_copy_3_ports.asm
-file=timer_copy_3_ports.lst,4,25,18
-file=timer_copy_3_ports.asm,1,17,10
+file=timer_copy_3_ports.lst,7,52,25
+file=timer_copy_3_ports.asm,23,35,51
 clock=1000000, Div8
 device-type=ATmega328P
 device-package=32-pin-TQFP

@@ -1,18 +1,18 @@
 gavrasm Gerd's AVR assembler version 5.1 (C)2021 by DG4FAC
 ----------------------------------------------------------
 
-Path:        /home/anonimo/Desktop/sis_embarcados/avr-projects/timer_copy_3_ports/
+Path:        /home/anonimo/Desktop/sis_embarcados/avr-projects/timer_1_port_forward/
 Source file: timer_copy_3_ports.asm
 Hex file:    timer_copy_3_ports.hex
 Eeprom file: timer_copy_3_ports.eep
-Compiled:    09.08.2022, 20:35:56
+Compiled:    11.08.2022, 08:59:38
 Pass:        2
 
      1: .device ATMega328p
      2: .org 0x0000
-     3: 000000   C01A  RJMP INIT
-     4: .org 0x001A
-     5: 00001A   C016  rjmp BASIC
+     3: 000000   C016  RJMP INIT
+     4: .org 0x0016
+     5: 000016   C021  rjmp BASIC
      6: 
      7: 
      8: .equ INPORT0 = 2
@@ -23,108 +23,138 @@ Pass:        2
     13: .def CANDIDATE = R20
     14: 
     15: .MACRO CFG_INPUT_PINS
-    16:        LDI R22,0x00
+    16:        LDI R16,0x00
     17:        OUT DDRD,R16
     18: .ENDMACRO
     19: 
     20: .MACRO CFG_OUTPUT_PINS
-    21:        LDI R21,(1<<PC0)|(1<<PC1)|(1<<PC2)
+    21:        LDI R16,(1<<PC0)|(1<<PC1)|(1<<PC2)
     22:        OUT DDRC,R21
-    23:        LDI R21,0x00
+    23:        LDI R16,0x00
     24:        OUT PORTC,R21
     25: .ENDMACRO
     26: 
     27: .MACRO CFG_LED
-    28:      LDI R17,(1<<PB5)
-    29:      OUT DDRB,R17
-    30:      OUT PORTB,R17
+    28:      LDI R21,(1<<PB5)
+    29:      OUT DDRB,R21
+    30:      OUT PORTB,R21
     31: .ENDMACRO
     32: 
     33: .MACRO CFG_TIMER
-    34: ; habilita timer 1
-    35:     LDI R16,(1<<CS12)
-    36:     STS TCCR1B,R16
-    37: ; configura modo normal
-    38:     LDI R16,0x00
-    39:     STS TCCR1A,R16
-    40: ; configura interrupt (overflow)
-    41:     LDI R16,(1<<TOIE1)
-    42:     STS TIMSK1,R16
-    43: .ENDMACRO
-    44: 
-    45: INIT: CFG_INPUT_PINS
-    45: 00001B   E060  LDI R22,0x00
-    45: 00001C   B90A  OUT DDRD,R16
-    46:       CFG_OUTPUT_PINS
-    46: 00001D   E057  LDI R21,(1<<PC0)|(1<<PC1)|(1<<PC2)
-    46: 00001E   B957  OUT DDRC,R21
-    46: 00001F   E050  LDI R21,0x00
-    46: 000020   B958  OUT PORTC,R21
-    47:       CFG_LED
-    47: 000021   E210  LDI R17,(1<<PB5)
-    47: 000022   B914  OUT DDRB,R17
-    47: 000023   B915  OUT PORTB,R17
-    48:       CFG_TIMER
-    48: ; habilita timer 1
-    48: 000024   E004  LDI R16,(1<<CS12)
-    48: 000025   9300  STS TCCR1B,R16
-        000026   0081
-    48: ; configura modo normal
-    48: 000027   E000  LDI R16,0x00
-    48: 000028   9300  STS TCCR1A,R16
-        000029   0080
-    48: ; configura interrupt (overflow)
-    48: 00002A   E001  LDI R16,(1<<TOIE1)
-    48: 00002B   9300  STS TIMSK1,R16
-        00002C   006F
-    49: 00002D   E040  LDI CANDIDATE,0x00
-    50: 00002E   B948  OUT PORTC,CANDIDATE
-    51: 00002F   9478  SEI
-    52: 
-    53: 000030   CFFF  RJMP LOOP
-    54: 
-    55: 
-    56: BASIC:
-    57: 
-    58: ; NO NANO -> PA1 corresponde ao segundo bit (iniciando em 0) de PORTC
-    59: 000031   B109  IN R16,PIND
-    60: 000032   E010  LDI R17,0x00
-    61: 000033   FD04  SBRC R16,INPORT2 ; Pula se PIND[INPORT2] estiver OFF
-    62: 000034   6014  ORI R17,(1<<PC2)  ; Seta PC2 ON
-    63: 000035   FD03  SBRC R16,INPORT1 ; Pula se PIND[INPORT1] estiver OFF
-    64: 000036   6012  ORI R17,(1<<PC1)  ; Seta PC1 ON
-    65: 000037   FD02  SBRC R16,INPORT0 ; Pula se PIND[INPORT0] estiver OFF
-    66: 000038   6011  ORI R17,(1<<PC0)  ; Seta PC0 ON
-    67: 
-    68: 
-    69: 000039   B918  OUT PORTC,R17
-    70: 00003A   9518  RETI
-    71: 
-    72: TURN_ON:
-    73: 00003B   E210  LDI R17,(1<<PB5)
-    74: 00003C   B915  OUT PORTB,R17
-    75: 00003D   9508  RET
+    34: ; limpa timer 1
+    35:     CLR R16
+    36:     STS TCNT1L,R16
+    37:     STS TCNT1H,R16
+    38: ; habilita timer 1
+    39:     LDI R16,(1<<CS12)|(1<<CS10)|(1<<WGM12)
+    40:     STS TCCR1B,R16
+    41: ; configura modo normal
+    42:     LDI R16,(1<<COM1A0)
+    43:     STS TCCR1A,R16
+    44: ; configura OCR
+    45:     LDI R16,0x35
+    46:     STS OCR1AH,R16
+    47:     LDI R16,0x36
+    48:     STS OCR1AL,R16
+    49: ; configura interrupt (overflow)
+    50:     LDI R16,(1<<OCIE1A)
+    51:     STS TIMSK1,R16
+    52: .ENDMACRO
+    53: 
+    54: INIT: CFG_INPUT_PINS
+    54: 000017   E000  LDI R16,0x00
+    54: 000018   B90A  OUT DDRD,R16
+    55:       CFG_OUTPUT_PINS
+    55: 000019   E007  LDI R16,(1<<PC0)|(1<<PC1)|(1<<PC2)
+    55: 00001A   B957  OUT DDRC,R21
+    55: 00001B   E000  LDI R16,0x00
+    55: 00001C   B958  OUT PORTC,R21
+    56:       CFG_LED
+    56: 00001D   E250  LDI R21,(1<<PB5)
+    56: 00001E   B954  OUT DDRB,R21
+    56: 00001F   B955  OUT PORTB,R21
+    57:       CFG_TIMER
+    57: ; limpa timer 1
+    57: 000020   2700  CLR R16
+    57: 000021   9300  STS TCNT1L,R16
+        000022   0084
+    57: 000023   9300  STS TCNT1H,R16
+        000024   0085
+    57: ; habilita timer 1
+    57: 000025   E00D  LDI R16,(1<<CS12)|(1<<CS10)|(1<<WGM12)
+    57: 000026   9300  STS TCCR1B,R16
+        000027   0081
+    57: ; configura modo normal
+    57: 000028   E400  LDI R16,(1<<COM1A0)
+    57: 000029   9300  STS TCCR1A,R16
+        00002A   0080
+    57: ; configura OCR
+    57: 00002B   E305  LDI R16,0x35
+    57: 00002C   9300  STS OCR1AH,R16
+        00002D   0089
+    57: 00002E   E306  LDI R16,0x36
+    57: 00002F   9300  STS OCR1AL,R16
+        000030   0088
+    57: ; configura interrupt (overflow)
+    57: 000031   E002  LDI R16,(1<<OCIE1A)
+    57: 000032   9300  STS TIMSK1,R16
+        000033   006F
+    58: 000034   E040  LDI CANDIDATE,0x00
+    59: 000035   B948  OUT PORTC,CANDIDATE
+    60: 000036   9478  SEI
+    61: 
+    62: 000037   CFFF  RJMP LOOP
+    63: 
+    64: 
+    65: BASIC:
+    66: 
+    67: ; NO NANO -> PA1 corresponde ao segundo bit (iniciando em 0) de PORTC
+    68: 000038   B109  IN R16,PIND
+    69: 000039   E010  LDI R17,0x00
+    70: 00003A   FD04  SBRC R16,INPORT2 ; Pula se PIND[INPORT2] estiver OFF
+    71: 00003B   6014  ORI R17,(1<<PC2)  ; Seta PC2 ON
+    72: 00003C   FD03  SBRC R16,INPORT1 ; Pula se PIND[INPORT1] estiver OFF
+    73: 00003D   6012  ORI R17,(1<<PC1)  ; Seta PC1 ON
+    74: 00003E   FD02  SBRC R16,INPORT0 ; Pula se PIND[INPORT0] estiver OFF
+    75: 00003F   6011  ORI R17,(1<<PC0)  ; Seta PC0 ON
     76: 
-    77: TURN_OFF:
-    78: 00003E   E010  LDI R17,0x00
-    79: 00003F   B915  OUT PORTB,R17
-    80: 000040   9508  RET
+    77: 
+    78: 000040   B918  OUT PORTC,R17
+    79: 000041   940E  CALL TOGGLE_LED
+        000042   0044
+    80: 000043   9518  RETI
     81: 
-    82: 
+    82: TOGGLE_LED:
+    83: 000044   3250  CPI R21,(1<<PB5)
+    84: 000045   F021  BREQ TURN_OFF
+    85: 000046   C000  RJMP TURN_ON
+    86: 
+    87: TURN_ON:
+    88: 000047   E250  LDI R21,(1<<PB5)
+    89: 000048   B955  OUT PORTB,R21
+    90: 000049   9508  RET
+    91: 
+    92: TURN_OFF:
+    93: 00004A   E050  LDI R21,0x00
+    94: 00004B   B955  OUT PORTB,R21
+    95: 00004C   9508  RET
+    96: 
+    97: 
 
 List of symbols:
 Type nDef nUsed             Decimalval           Hexval Name
   T     1     1                    171               AB ATMEGA328P
-  L     1     2                     27               1B INIT
-  L     1     2                     48               30 LOOP
-  L     1     2                     49               31 BASIC
-  L     1     0                     59               3B TURN_ON
-  L     1     0                     62               3E TURN_OFF
+  L     1     2                     23               17 INIT
+  L     1     2                     55               37 LOOP
+  L     1     2                     56               38 BASIC
+  L     1     1                     68               44 TOGGLE_LED
+  L     1     2                     71               47 TURN_ON
+  L     1     2                     74               4A TURN_OFF
   R     1     2                     20               14 CANDIDATE
   C     1     0                     22               16 NOW_Y
   C     1     0                      8               08 NOW_M
-  C     1     0                      9               09 NOW_D
-  C     1     0                  44782             AEEE NOW_I
+  C     1     0                     11               0B NOW_D
+  C     1     0                  44784             AEF0 NOW_I
   C     1     1                      2               02 INPORT0
   C     1     1                      3               03 INPORT1
   C     1     1                      4               04 INPORT2
@@ -134,12 +164,12 @@ nLines nUsed nParams Name
      2     1       0 CFG_INPUT_PINS
      4     1       0 CFG_OUTPUT_PINS
      3     1       0 CFG_LED
-     9     1       0 CFG_TIMER
+    18     1       0 CFG_TIMER
 
-Program             :       40 words.
+Program             :       56 words.
 Constants           :        0 words.
-Total program memory:       40 words.
+Total program memory:       56 words.
 Eeprom space        :        0 bytes.
 Data segment        :        0 bytes.
 Compilation completed, no errors.
-Compilation ended 09.08.2022, 20:35:56
+Compilation ended 11.08.2022, 08:59:38
