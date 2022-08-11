@@ -4,7 +4,10 @@
 .equ INPORT1 = 3
 .equ INPORT2 = 4
 
-.equ CARTAO = 0b00000101
+.equ OC0A_LOW = 0x36
+.equ OC0A_HIGH = 0x35
+
+.equ CARTAO = 0b00000110
 
 .DEF LIST_END = R17
 .DEF POS_A = R18
@@ -43,24 +46,23 @@
 .ENDMACRO
 
 .MACRO CFG_TIMER
-; habilita timer 1
-    LDI R16,(1<<CS12)
+    CLR R16
+    STS TCNT1L,R16
+    STS TCNT1H,R16
+    LDI R16,(1<<CS12)|(1<<CS10)|(1<<WGM12)
     STS TCCR1B,R16
-; configura modo normal
-    LDI R16,0x00
+    LDI R16,(1<<COM1A0)
     STS TCCR1A,R16
-; configura interrupt (overflow)
-    LDI R16,(1<<TOIE1)
+    LDI R16,OC0A_HIGH
+    STS OCR1AH,R16
+    LDI R16,OC0A_LOW
+    STS OCR1AL,R16
+    LDI R16,(1<<OCIE1A)
     STS TIMSK1,R16
 .ENDMACRO
 
 
 .MACRO CFG_TIMER_OCR
-       ; Timer 0 - 8 bits - TCNT0
-       ; Internal clock/1024 -> CS02:0 = 101 (register TCCR0B)
-       ; CTC -> WGM02:0 = 010 (registers TCCR0A and TCCR0B)
-       ; Count to 0xFF -> OCR0A = 0xFF
-       ; On compare match OCR0A toggle pin6 -> COM0A1:0 = 01 (register TCCR0A)
        CLR R16
        OUT TCNT0,R16
        OUT TCCR0A,R16
@@ -75,16 +77,11 @@
 
 .dseg ; Data segment
 .org 0x100
-
-
 .cseg
 .org 0x0000
 RJMP INIT
-.org 0x001A
+.org 0x0016
 rjmp BASIC
-
-
-
 
 INIT: CFG_SRAM
       CFG_STACK
@@ -118,16 +115,11 @@ LOAD_LOOP:
           BRNE LOAD_LOOP
 LOAD_END: RET
 
-
-
 BASIC:
       CALL INSERT_INPUT
       CALL UPDATE_OUTPUT
       ;CALL TOGGLE_LED
       RETI
-
-
-
 
 ; Uses R16, POS_A, POS_B, CANDIDATE and calls CHANGE_POSITION
 ORDERLY_INSERT:
@@ -174,28 +166,16 @@ INSERT_INPUT:
       ORI CANDIDATE,0b00000001  ; Seta PC0 ON
       CALL ORDERLY_INSERT
 
-PORT_FORWARD:
-      IN R16,PIND
-      LDI R17,0x00
-      SBRC R16,INPORT2 ; Pula se PIND[INPORT2] estiver OFF
-      ORI R17,(1<<PC2)  ; Seta PC2 ON
-      SBRC R16,INPORT1 ; Pula se PIND[INPORT1] estiver OFF
-      ORI R17,(1<<PC1)  ; Seta PC1 ON
-      SBRC R16,INPORT0 ; Pula se PIND[INPORT0] estiver OFF
-      ORI R17,(1<<PC0)  ; Seta PC0 ON
-      OUT PORTC,R17
-      RET
-
 UPDATE_OUTPUT:
       LDI XL,0x00
       LD R16,X
       LDI R17,0x00
-      SBRC R16,2 ; Pula se PIND[INPORT2] estiver OFF
+      SBRC R16,2 ; Pula se MAIOR[2] estiver OFF
       ORI R17,(1<<PC2)  ; Seta PC2 ON
-      SBRC R16,1 ; Pula se PIND[INPORT1] estiver OFF
-      ORI R17,(1<<PC1)  ; Seta PC1 ON
-      SBRC R16,0 ; Pula se PIND[INPORT0] estiver OFF
-      ORI R17,(1<<PC0)  ; Seta PC0 ON
+      SBRC R16,1; Repete
+      ORI R17,(1<<PC1)
+      SBRC R16,0
+      ORI R17,(1<<PC0)
       OUT PORTC,R17
       CPI R16,CARTAO
       BREQ TURN_ON

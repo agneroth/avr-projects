@@ -5,7 +5,7 @@ Path:        /home/anonimo/Desktop/sis_embarcados/avr-projects/prova_1/
 Source file: prova-1.asm
 Hex file:    prova-1.hex
 Eeprom file: prova-1.eep
-Compiled:    10.08.2022, 12:03:53
+Compiled:    11.08.2022, 10:43:12
 Pass:        2
 
      1: .device ATMega328p
@@ -14,301 +14,283 @@ Pass:        2
      4: .equ INPORT1 = 3
      5: .equ INPORT2 = 4
      6: 
-     7: .equ CARTAO = 0b00000101
-     8: 
-     9: .DEF LIST_END = R17
-    10: .DEF POS_A = R18
-    11: .DEF POS_B = R19
-    12: .DEF CANDIDATE = R20
-    13: .DEF LED_STATUS = R21
-    14: 
-    15: .MACRO CFG_SRAM
-    16:        LDI XL,0x00
-    17:        LDI XH,0x01
-    18: .ENDMACRO
-    19: 
-    20: .MACRO CFG_STACK
-    21:      LDI R16,HIGH(RAMEND)
-    22:      OUT SPH,R16
-    23:      LDI R16,LOW(RAMEND)
-    24:      OUT SPL,R16
-    25: .ENDMACRO
-    26: 
-    27: .MACRO CFG_INPUT_PINS
-    28:        LDI R16,(1<<PD6)
-    29:        OUT DDRD,R16
-    30: .ENDMACRO
-    31: 
-    32: .MACRO CFG_OUTPUT_PINS
-    33:        LDI R16,(1<<PC0)|(1<<PC1)|(1<<PC2)
-    34:        OUT DDRC,R16
-    35:        LDI R16,0x00
-    36:        OUT PORTC,R21
-    37: .ENDMACRO
-    38: 
-    39: .MACRO CFG_LED
-    40:      LDI LED_STATUS,(1<<PB5)
-    41:      OUT DDRB,LED_STATUS
-    42:      OUT PORTB,LED_STATUS
-    43: .ENDMACRO
-    44: 
-    45: .MACRO CFG_TIMER
-    46: ; habilita timer 1
-    47:     LDI R16,(1<<CS12)
-    48:     STS TCCR1B,R16
-    49: ; configura modo normal
-    50:     LDI R16,0x00
-    51:     STS TCCR1A,R16
-    52: ; configura interrupt (overflow)
-    53:     LDI R16,(1<<TOIE1)
-    54:     STS TIMSK1,R16
-    55: .ENDMACRO
-    56: 
-    57: 
-    58: .MACRO CFG_TIMER_OCR
-    59:        ; Timer 0 - 8 bits - TCNT0
-    60:        ; Internal clock/1024 -> CS02:0 = 101 (register TCCR0B)
-    61:        ; CTC -> WGM02:0 = 010 (registers TCCR0A and TCCR0B)
-    62:        ; Count to 0xFF -> OCR0A = 0xFF
-    63:        ; On compare match OCR0A toggle pin6 -> COM0A1:0 = 01 (register TCCR0A)
-    64:        CLR R16
-    65:        OUT TCNT0,R16
-    66:        OUT TCCR0A,R16
-    67:        OUT TCCR0B,R16
-    68:        LDI R16,(1<<WGM01)|(0<<WGM00)
-    69:        OUT TCCR0A,R16
-    70:        LDI R16,(1<<CS02)|(1<<CS00)|(0<<WGM02)
-    71:        OUT TCCR0B,R16
-    72:        LDI R16,0xFF
-    73:        OUT OCR0A,R16
-    74: .ENDMACRO
-    75: 
-    76: .dseg ; Data segment
-    77: .org 0x100
-    78: 
-    79: 
+     7: .equ OC0A_LOW = 0x36
+     8: .equ OC0A_HIGH = 0x35
+     9: 
+    10: .equ CARTAO = 0b00000110
+    11: 
+    12: .DEF LIST_END = R17
+    13: .DEF POS_A = R18
+    14: .DEF POS_B = R19
+    15: .DEF CANDIDATE = R20
+    16: .DEF LED_STATUS = R21
+    17: 
+    18: .MACRO CFG_SRAM
+    19:        LDI XL,0x00
+    20:        LDI XH,0x01
+    21: .ENDMACRO
+    22: 
+    23: .MACRO CFG_STACK
+    24:      LDI R16,HIGH(RAMEND)
+    25:      OUT SPH,R16
+    26:      LDI R16,LOW(RAMEND)
+    27:      OUT SPL,R16
+    28: .ENDMACRO
+    29: 
+    30: .MACRO CFG_INPUT_PINS
+    31:        LDI R16,(1<<PD6)
+    32:        OUT DDRD,R16
+    33: .ENDMACRO
+    34: 
+    35: .MACRO CFG_OUTPUT_PINS
+    36:        LDI R16,(1<<PC0)|(1<<PC1)|(1<<PC2)
+    37:        OUT DDRC,R16
+    38:        LDI R16,0x00
+    39:        OUT PORTC,R21
+    40: .ENDMACRO
+    41: 
+    42: .MACRO CFG_LED
+    43:      LDI LED_STATUS,(1<<PB5)
+    44:      OUT DDRB,LED_STATUS
+    45:      OUT PORTB,LED_STATUS
+    46: .ENDMACRO
+    47: 
+    48: .MACRO CFG_TIMER
+    49:     CLR R16
+    50:     STS TCNT1L,R16
+    51:     STS TCNT1H,R16
+    52:     LDI R16,(1<<CS12)|(1<<CS10)|(1<<WGM12)
+    53:     STS TCCR1B,R16
+    54:     LDI R16,(1<<COM1A0)
+    55:     STS TCCR1A,R16
+    56:     LDI R16,OC0A_HIGH
+    57:     STS OCR1AH,R16
+    58:     LDI R16,OC0A_LOW
+    59:     STS OCR1AL,R16
+    60:     LDI R16,(1<<OCIE1A)
+    61:     STS TIMSK1,R16
+    62: .ENDMACRO
+    63: 
+    64: 
+    65: .MACRO CFG_TIMER_OCR
+    66:        CLR R16
+    67:        OUT TCNT0,R16
+    68:        OUT TCCR0A,R16
+    69:        OUT TCCR0B,R16
+    70:        LDI R16,(1<<WGM01)|(0<<WGM00)
+    71:        OUT TCCR0A,R16
+    72:        LDI R16,(1<<CS02)|(1<<CS00)|(0<<WGM02)
+    73:        OUT TCCR0B,R16
+    74:        LDI R16,0xFF
+    75:        OUT OCR0A,R16
+    76: .ENDMACRO
+    77: 
+    78: .dseg ; Data segment
+    79: .org 0x100
     80: .cseg
     81: .org 0x0000
-    82: 000000   C01A  RJMP INIT
-    83: .org 0x001A
-    84: 00001A   C038  rjmp BASIC
+    82: 000000   C016  RJMP INIT
+    83: .org 0x0016
+    84: 000016   C043  rjmp BASIC
     85: 
-    86: 
-    87: 
-    88: 
-    89: INIT: CFG_SRAM
-    89: 00001B   E0A0  LDI XL,0x00
-    89: 00001C   E0B1  LDI XH,0x01
-    90:       CFG_STACK
-    90: 00001D   E008  LDI R16,HIGH(RAMEND)
-    90: 00001E   BF0E  OUT SPH,R16
-    90: 00001F   EF0F  LDI R16,LOW(RAMEND)
-    90: 000020   BF0D  OUT SPL,R16
-    91: 000021   940E  CALL FILL_FROM_CMEM
-        000022   0043
-    92:       CFG_INPUT_PINS
-    92: 000023   E400  LDI R16,(1<<PD6)
-    92: 000024   B90A  OUT DDRD,R16
-    93:       CFG_OUTPUT_PINS
-    93: 000025   E007  LDI R16,(1<<PC0)|(1<<PC1)|(1<<PC2)
-    93: 000026   B907  OUT DDRC,R16
-    93: 000027   E000  LDI R16,0x00
-    93: 000028   B958  OUT PORTC,R21
-    94:       CFG_LED
-    94: 000029   E250  LDI LED_STATUS,(1<<PB5)
-    94: 00002A   B954  OUT DDRB,LED_STATUS
-    94: 00002B   B955  OUT PORTB,LED_STATUS
-    95:       CFG_TIMER
-    95: ; habilita timer 1
-    95: 00002C   E004  LDI R16,(1<<CS12)
-    95: 00002D   9300  STS TCCR1B,R16
-        00002E   0081
-    95: ; configura modo normal
-    95: 00002F   E000  LDI R16,0x00
-    95: 000030   9300  STS TCCR1A,R16
-        000031   0080
-    95: ; configura interrupt (overflow)
-    95: 000032   E001  LDI R16,(1<<TOIE1)
-    95: 000033   9300  STS TIMSK1,R16
-        000034   006F
-    96:       CFG_TIMER_OCR
-    96:        ; Timer 0 - 8 bits - TCNT0
-    96:        ; Internal clock/1024 -> CS02:0 = 101 (register TCCR0B)
-    96:        ; CTC -> WGM02:0 = 010 (registers TCCR0A and TCCR0B)
-    96:        ; Count to 0xFF -> OCR0A = 0xFF
-    96:        ; On compare match OCR0A toggle pin6 -> COM0A1:0 = 01 (register TCCR0A)
-    96: 000035   2700  CLR R16
-    96: 000036   BD06  OUT TCNT0,R16
-    96: 000037   BD04  OUT TCCR0A,R16
-    96: 000038   BD05  OUT TCCR0B,R16
-    96: 000039   E002  LDI R16,(1<<WGM01)|(0<<WGM00)
-    96: 00003A   BD04  OUT TCCR0A,R16
-    96: 00003B   E005  LDI R16,(1<<CS02)|(1<<CS00)|(0<<WGM02)
-    96: 00003C   BD05  OUT TCCR0B,R16
-    96: 00003D   EF0F  LDI R16,0xFF
-    96: 00003E   BD07  OUT OCR0A,R16
-    97: 00003F   940E  CALL UPDATE_OUTPUT
-        000040   0086
-    98: 000041   9478  SEI
-    99: 
-   100: 000042   CFFF  RJMP LOOP
-   101: 
-   102: FILL_FROM_CMEM:
-   103: 000043   E010  LDI LIST_END,0x00
-   104: 000044   E4E2  LDI R30,LOW(ARRAY<<1)
-   105: 000045   E0F1  LDI R31,HIGH(ARRAY<<1)
-   106: 000046   E000  LDI R16,0x00
-   107: 000047   9015  LPM R1,Z+
-   108: 000048   921D  ST X+,R1
-   109: 000049   9503  INC R16
-   110: 00004A   3001  CPI R16,INITIAL_ARRAY_SIZE
-   111: 00004B   F031  BREQ LOAD_END
-   112: LOAD_LOOP:
-   113: 00004C   9015  LPM R1,Z+
-   114: 00004D   921D  ST X+,R1
-   115: 00004E   9513  INC LIST_END
-   116: 00004F   9503  INC R16
-   117: 000050   3001  CPI R16,INITIAL_ARRAY_SIZE
-   118: 000051   F7D1  BRNE LOAD_LOOP
-   119: 000052   9508  RET
-   120: 
-   121: 
-   122: 
-   123: BASIC:
-   124: 000053   940E  CALL INSERT_INPUT
-        000054   0072
-   125: 000055   940E  CALL UPDATE_OUTPUT
-        000056   0086
-   126:       ;CALL TOGGLE_LED
-   127: 000057   9518  RETI
-   128: 
-   129: 
-   130: 
-   131: 
-   132: ; Uses R16, POS_A, POS_B, CANDIDATE and calls CHANGE_POSITION
-   133: ORDERLY_INSERT:
-   134: 000058   9513  INC LIST_END
-   135: 000059   2FA1  MOV XL,LIST_END ; Carrega o final da lista
-   136: 00005A   2F21  MOV POS_A,LIST_END ; Salva a posição do valor inserido
-   137: 00005B   934C  ST X,CANDIDATE ; Insere o valor no final da lista
-   138: SWITCH_POS_LOOP:
-   139: 00005C   910E  LD R16,-X ; Carrega o último valor da lista
-   140: 00005D   2F3A  MOV POS_B,XL ; Salva a posição atual
-   141: 00005E   1704  CP R16,CANDIDATE ; Compara se o último valor é igual ou maior
-   142: 00005F   F430  BRSH HANDLER_END ; Se for, termina
-   143: 000060   940E  CALL CHANGE_POSITION ; Senão, troca posição
-        000061   0067
-   144: 000062   2F23  MOV POS_A,POS_B ; Troca a posicao
-   145: 000063   3020  CPI POS_A,0x00 ; Se a posição atual for 0, acaba.
-   146: 000064   F009  BREQ HANDLER_END
-   147: 000065   CFF6  RJMP SWITCH_POS_LOOP ; Senão, reinicia
-   148: 
-   149: 
-   150: HANDLER_END:
-   151: 000066   9508  RET
-   152: ; Uses POS_A, POS_B and R16
-   153: CHANGE_POSITION:
-   154: 000067   2FA2  MOV XL,POS_A ; Carrega POS_A
-   155: 000068   910C  LD R16,X ; Carrega em R16 conteúdo de POS_A
-   156: 000069   930F  PUSH R16 ; Bota conteúdo de POS_A no stack
-   157: 00006A   2FA3  MOV XL,POS_B ; Carrega POS_B
-   158: 00006B   910C  LD R16,X ; Carrega em R16 conteúdo de POS_B
-   159: 00006C   2FA2  MOV XL,POS_A ; Carrega POS_A
-   160: 00006D   930C  ST X,R16 ; Carrega conteúdo de R16 em POS_A
-   161: 00006E   910F  POP R16 ; Tira conteúdo (original) de POS_A do stack
-   162: 00006F   2FA3  MOV XL,POS_B ; Carrega POS_B
-   163: 000070   930C  ST X,R16 ; Carrega conteúdo de R16 em POS_B
-   164: 000071   9508  RET
-   165: 
-   166: INSERT_INPUT:
-   167: 000072   B109  IN R16,PIND
-   168: 000073   E040  LDI CANDIDATE,0x00
-   169: 000074   FD04  SBRC R16,INPORT2 ; Pula se PIND[INPORT2] estiver OFF
-   170: 000075   6044  ORI CANDIDATE,0b00000100  ; Seta PC2 ON
-   171: 000076   FD03  SBRC R16,INPORT1 ; Pula se PIND[INPORT1] estiver OFF
-   172: 000077   6042  ORI CANDIDATE,0b00000010  ; Seta PC1 ON
-   173: 000078   FD02  SBRC R16,INPORT0 ; Pula se PIND[INPORT0] estiver OFF
-   174: 000079   6041  ORI CANDIDATE,0b00000001  ; Seta PC0 ON
-   175: 00007A   940E  CALL ORDERLY_INSERT
-        00007B   0058
-   176: 
-   177: PORT_FORWARD:
-   178: 00007C   B109  IN R16,PIND
-   179: 00007D   E010  LDI R17,0x00
-   180: 00007E   FD04  SBRC R16,INPORT2 ; Pula se PIND[INPORT2] estiver OFF
-   181: 00007F   6014  ORI R17,(1<<PC2)  ; Seta PC2 ON
-   182: 000080   FD03  SBRC R16,INPORT1 ; Pula se PIND[INPORT1] estiver OFF
-   183: 000081   6012  ORI R17,(1<<PC1)  ; Seta PC1 ON
-   184: 000082   FD02  SBRC R16,INPORT0 ; Pula se PIND[INPORT0] estiver OFF
-   185: 000083   6011  ORI R17,(1<<PC0)  ; Seta PC0 ON
-   186: 000084   B918  OUT PORTC,R17
-   187: 000085   9508  RET
-   188: 
-   189: UPDATE_OUTPUT:
-   190: 000086   E0A0  LDI XL,0x00
-   191: 000087   910C  LD R16,X
-   192: 000088   E010  LDI R17,0x00
-   193: 000089   FD02  SBRC R16,2 ; Pula se PIND[INPORT2] estiver OFF
-   194: 00008A   6014  ORI R17,(1<<PC2)  ; Seta PC2 ON
-   195: 00008B   FD01  SBRC R16,1 ; Pula se PIND[INPORT1] estiver OFF
-   196: 00008C   6012  ORI R17,(1<<PC1)  ; Seta PC1 ON
-   197: 00008D   FD00  SBRC R16,0 ; Pula se PIND[INPORT0] estiver OFF
-   198: 00008E   6011  ORI R17,(1<<PC0)  ; Seta PC0 ON
-   199: 00008F   B918  OUT PORTC,R17
-   200: 000090   3005  CPI R16,CARTAO
-   201: 000091   F029  BREQ TURN_ON
-   202: 000092   F449  BRNE TURN_OFF
-   203: 000093   9508  RET
-   204: 
-   205: TOGGLE_LED:
-   206: 000094   3250  CPI LED_STATUS,(1<<PD5)
-   207: 000095   F031  BREQ TURN_OFF
-   208: 000096   C000  RJMP TURN_ON
-   209: 
-   210: TURN_ON:
-   211: 000097   E250  LDI LED_STATUS,(1<<PB5)
-   212: 000098   B955  OUT PORTB,LED_STATUS
-   213: 000099   E402  LDI R16,(0<<COM0A1)|(1<<COM0A0)|(1<<WGM01)|(0<<WGM00)
-   214: 00009A   BD04  OUT TCCR0A,R16
-   215: 00009B   9508  RET
-   216: 
-   217: TURN_OFF:
-   218: 00009C   E050  LDI LED_STATUS,0x00
-   219: 00009D   B955  OUT PORTB,LED_STATUS
-   220: 00009E   E002  LDI R16,(1<<WGM01)|(0<<WGM00)
-   221: 00009F   BD04  OUT TCCR0A,R16
-   222: 0000A0   9508  RET
-   223: 
-   224: .equ INITIAL_ARRAY_SIZE = 1
-   225: ARRAY: .db 3
+    86: INIT: CFG_SRAM
+    86: 000017   E0A0  LDI XL,0x00
+    86: 000018   E0B1  LDI XH,0x01
+    87:       CFG_STACK
+    87: 000019   E008  LDI R16,HIGH(RAMEND)
+    87: 00001A   BF0E  OUT SPH,R16
+    87: 00001B   EF0F  LDI R16,LOW(RAMEND)
+    87: 00001C   BF0D  OUT SPL,R16
+    88: 00001D   940E  CALL FILL_FROM_CMEM
+        00001E   004A
+    89:       CFG_INPUT_PINS
+    89: 00001F   E400  LDI R16,(1<<PD6)
+    89: 000020   B90A  OUT DDRD,R16
+    90:       CFG_OUTPUT_PINS
+    90: 000021   E007  LDI R16,(1<<PC0)|(1<<PC1)|(1<<PC2)
+    90: 000022   B907  OUT DDRC,R16
+    90: 000023   E000  LDI R16,0x00
+    90: 000024   B958  OUT PORTC,R21
+    91:       CFG_LED
+    91: 000025   E250  LDI LED_STATUS,(1<<PB5)
+    91: 000026   B954  OUT DDRB,LED_STATUS
+    91: 000027   B955  OUT PORTB,LED_STATUS
+    92:       CFG_TIMER
+    92: 000028   2700  CLR R16
+    92: 000029   9300  STS TCNT1L,R16
+        00002A   0084
+    92: 00002B   9300  STS TCNT1H,R16
+        00002C   0085
+    92: 00002D   E00D  LDI R16,(1<<CS12)|(1<<CS10)|(1<<WGM12)
+    92: 00002E   9300  STS TCCR1B,R16
+        00002F   0081
+    92: 000030   E400  LDI R16,(1<<COM1A0)
+    92: 000031   9300  STS TCCR1A,R16
+        000032   0080
+    92: 000033   E305  LDI R16,OC0A_HIGH
+    92: 000034   9300  STS OCR1AH,R16
+        000035   0089
+    92: 000036   E306  LDI R16,OC0A_LOW
+    92: 000037   9300  STS OCR1AL,R16
+        000038   0088
+    92: 000039   E002  LDI R16,(1<<OCIE1A)
+    92: 00003A   9300  STS TIMSK1,R16
+        00003B   006F
+    93:       CFG_TIMER_OCR
+    93: 00003C   2700  CLR R16
+    93: 00003D   BD06  OUT TCNT0,R16
+    93: 00003E   BD04  OUT TCCR0A,R16
+    93: 00003F   BD05  OUT TCCR0B,R16
+    93: 000040   E002  LDI R16,(1<<WGM01)|(0<<WGM00)
+    93: 000041   BD04  OUT TCCR0A,R16
+    93: 000042   E005  LDI R16,(1<<CS02)|(1<<CS00)|(0<<WGM02)
+    93: 000043   BD05  OUT TCCR0B,R16
+    93: 000044   EF0F  LDI R16,0xFF
+    93: 000045   BD07  OUT OCR0A,R16
+    94: 000046   940E  CALL UPDATE_OUTPUT
+        000047   0083
+    95: 000048   9478  SEI
+    96: 
+    97: 000049   CFFF  RJMP LOOP
+    98: 
+    99: FILL_FROM_CMEM:
+   100: 00004A   E010  LDI LIST_END,0x00
+   101: 00004B   E3EC  LDI R30,LOW(ARRAY<<1)
+   102: 00004C   E0F1  LDI R31,HIGH(ARRAY<<1)
+   103: 00004D   E000  LDI R16,0x00
+   104: 00004E   9015  LPM R1,Z+
+   105: 00004F   921D  ST X+,R1
+   106: 000050   9503  INC R16
+   107: 000051   3001  CPI R16,INITIAL_ARRAY_SIZE
+   108: 000052   F031  BREQ LOAD_END
+   109: LOAD_LOOP:
+   110: 000053   9015  LPM R1,Z+
+   111: 000054   921D  ST X+,R1
+   112: 000055   9513  INC LIST_END
+   113: 000056   9503  INC R16
+   114: 000057   3001  CPI R16,INITIAL_ARRAY_SIZE
+   115: 000058   F7D1  BRNE LOAD_LOOP
+   116: 000059   9508  RET
+   117: 
+   118: BASIC:
+   119: 00005A   940E  CALL INSERT_INPUT
+        00005B   0079
+   120: 00005C   940E  CALL UPDATE_OUTPUT
+        00005D   0083
+   121:       ;CALL TOGGLE_LED
+   122: 00005E   9518  RETI
+   123: 
+   124: ; Uses R16, POS_A, POS_B, CANDIDATE and calls CHANGE_POSITION
+   125: ORDERLY_INSERT:
+   126: 00005F   9513  INC LIST_END
+   127: 000060   2FA1  MOV XL,LIST_END ; Carrega o final da lista
+   128: 000061   2F21  MOV POS_A,LIST_END ; Salva a posição do valor inserido
+   129: 000062   934C  ST X,CANDIDATE ; Insere o valor no final da lista
+   130: SWITCH_POS_LOOP:
+   131: 000063   910E  LD R16,-X ; Carrega o último valor da lista
+   132: 000064   2F3A  MOV POS_B,XL ; Salva a posição atual
+   133: 000065   1704  CP R16,CANDIDATE ; Compara se o último valor é igual ou maior
+   134: 000066   F430  BRSH HANDLER_END ; Se for, termina
+   135: 000067   940E  CALL CHANGE_POSITION ; Senão, troca posição
+        000068   006E
+   136: 000069   2F23  MOV POS_A,POS_B ; Troca a posicao
+   137: 00006A   3020  CPI POS_A,0x00 ; Se a posição atual for 0, acaba.
+   138: 00006B   F009  BREQ HANDLER_END
+   139: 00006C   CFF6  RJMP SWITCH_POS_LOOP ; Senão, reinicia
+   140: 
+   141: 
+   142: HANDLER_END:
+   143: 00006D   9508  RET
+   144: ; Uses POS_A, POS_B and R16
+   145: CHANGE_POSITION:
+   146: 00006E   2FA2  MOV XL,POS_A ; Carrega POS_A
+   147: 00006F   910C  LD R16,X ; Carrega em R16 conteúdo de POS_A
+   148: 000070   930F  PUSH R16 ; Bota conteúdo de POS_A no stack
+   149: 000071   2FA3  MOV XL,POS_B ; Carrega POS_B
+   150: 000072   910C  LD R16,X ; Carrega em R16 conteúdo de POS_B
+   151: 000073   2FA2  MOV XL,POS_A ; Carrega POS_A
+   152: 000074   930C  ST X,R16 ; Carrega conteúdo de R16 em POS_A
+   153: 000075   910F  POP R16 ; Tira conteúdo (original) de POS_A do stack
+   154: 000076   2FA3  MOV XL,POS_B ; Carrega POS_B
+   155: 000077   930C  ST X,R16 ; Carrega conteúdo de R16 em POS_B
+   156: 000078   9508  RET
+   157: 
+   158: INSERT_INPUT:
+   159: 000079   B109  IN R16,PIND
+   160: 00007A   E040  LDI CANDIDATE,0x00
+   161: 00007B   FD04  SBRC R16,INPORT2 ; Pula se PIND[INPORT2] estiver OFF
+   162: 00007C   6044  ORI CANDIDATE,0b00000100  ; Seta PC2 ON
+   163: 00007D   FD03  SBRC R16,INPORT1 ; Pula se PIND[INPORT1] estiver OFF
+   164: 00007E   6042  ORI CANDIDATE,0b00000010  ; Seta PC1 ON
+   165: 00007F   FD02  SBRC R16,INPORT0 ; Pula se PIND[INPORT0] estiver OFF
+   166: 000080   6041  ORI CANDIDATE,0b00000001  ; Seta PC0 ON
+   167: 000081   940E  CALL ORDERLY_INSERT
+        000082   005F
+   168: 
+   169: UPDATE_OUTPUT:
+   170: 000083   E0A0  LDI XL,0x00
+   171: 000084   910C  LD R16,X
+   172: 000085   E010  LDI R17,0x00
+   173: 000086   FD02  SBRC R16,2 ; Pula se MAIOR[2] estiver OFF
+   174: 000087   6014  ORI R17,(1<<PC2)  ; Seta PC2 ON
+   175: 000088   FD01  SBRC R16,1; Repete
+   176: 000089   6012  ORI R17,(1<<PC1)
+   177: 00008A   FD00  SBRC R16,0
+   178: 00008B   6011  ORI R17,(1<<PC0)
+   179: 00008C   B918  OUT PORTC,R17
+   180: 00008D   3006  CPI R16,CARTAO
+   181: 00008E   F029  BREQ TURN_ON
+   182: 00008F   F449  BRNE TURN_OFF
+   183: 000090   9508  RET
+   184: 
+   185: TOGGLE_LED:
+   186: 000091   3250  CPI LED_STATUS,(1<<PD5)
+   187: 000092   F031  BREQ TURN_OFF
+   188: 000093   C000  RJMP TURN_ON
+   189: 
+   190: TURN_ON:
+   191: 000094   E250  LDI LED_STATUS,(1<<PB5)
+   192: 000095   B955  OUT PORTB,LED_STATUS
+   193: 000096   E402  LDI R16,(0<<COM0A1)|(1<<COM0A0)|(1<<WGM01)|(0<<WGM00)
+   194: 000097   BD04  OUT TCCR0A,R16
+   195: 000098   9508  RET
+   196: 
+   197: TURN_OFF:
+   198: 000099   E050  LDI LED_STATUS,0x00
+   199: 00009A   B955  OUT PORTB,LED_STATUS
+   200: 00009B   E002  LDI R16,(1<<WGM01)|(0<<WGM00)
+   201: 00009C   BD04  OUT TCCR0A,R16
+   202: 00009D   9508  RET
+   203: 
+   204: .equ INITIAL_ARRAY_SIZE = 1
+   205: ARRAY: .db 3
  -> Warning 004: Number of bytes on line is odd, added 00 to fit program memory!
-   File: /home/anonimo/Desktop/sis_embarcados/avr-projects/prova_1/prova-1.asm, Line: 225
+   File: /home/anonimo/Desktop/sis_embarcados/avr-projects/prova_1/prova-1.asm, Line: 205
    Source line: ARRAY: .db 3
-        0000A1 0003
-   226: 
-   227: 
-   228: 
+        00009E 0003
+   206: 
+   207: 
+   208: 
 
 List of symbols:
 Type nDef nUsed             Decimalval           Hexval Name
   T     1     1                    171               AB ATMEGA328P
-  L     1     2                     27               1B INIT
-  L     1     2                     66               42 LOOP
-  L     1     1                     67               43 FILL_FROM_CMEM
-  L     1     2                     76               4C LOAD_LOOP
-  L     1     2                     82               52 LOAD_END
-  L     1     2                     83               53 BASIC
-  L     1     1                     88               58 ORDERLY_INSERT
-  L     1     2                     92               5C SWITCH_POS_LOOP
-  L     1     4                    102               66 HANDLER_END
-  L     1     1                    103               67 CHANGE_POSITION
-  L     1     1                    114               72 INSERT_INPUT
-  L     1     0                    124               7C PORT_FORWARD
-  L     1     2                    134               86 UPDATE_OUTPUT
-  L     1     0                    148               94 TOGGLE_LED
-  L     1     4                    151               97 TURN_ON
-  L     1     4                    156               9C TURN_OFF
-  L     1     2                    161               A1 ARRAY
+  L     1     2                     23               17 INIT
+  L     1     2                     73               49 LOOP
+  L     1     1                     74               4A FILL_FROM_CMEM
+  L     1     2                     83               53 LOAD_LOOP
+  L     1     2                     89               59 LOAD_END
+  L     1     2                     90               5A BASIC
+  L     1     1                     95               5F ORDERLY_INSERT
+  L     1     2                     99               63 SWITCH_POS_LOOP
+  L     1     4                    109               6D HANDLER_END
+  L     1     1                    110               6E CHANGE_POSITION
+  L     1     1                    121               79 INSERT_INPUT
+  L     1     2                    131               83 UPDATE_OUTPUT
+  L     1     0                    145               91 TOGGLE_LED
+  L     1     4                    148               94 TURN_ON
+  L     1     4                    153               99 TURN_OFF
+  L     1     2                    158               9E ARRAY
   R     1     5                     17               11 LIST_END
   R     1     5                     18               12 POS_A
   R     1     4                     19               13 POS_B
@@ -316,12 +298,14 @@ Type nDef nUsed             Decimalval           Hexval Name
   R     1     8                     21               15 LED_STATUS
   C     1     0                     22               16 NOW_Y
   C     1     0                      8               08 NOW_M
-  C     1     0                     10               0A NOW_D
-  C     1     0                  44783             AEEF NOW_I
-  C     1     2                      2               02 INPORT0
-  C     1     2                      3               03 INPORT1
-  C     1     2                      4               04 INPORT2
-  C     1     1                      5               05 CARTAO
+  C     1     0                     11               0B NOW_D
+  C     1     0                  44784             AEF0 NOW_I
+  C     1     1                      2               02 INPORT0
+  C     1     1                      3               03 INPORT1
+  C     1     1                      4               04 INPORT2
+  C     1     1                     54               36 OC0A_LOW
+  C     1     1                     53               35 OC0A_HIGH
+  C     1     1                      6               06 CARTAO
   C     1     2                      1               01 INITIAL_ARRAY_SIZE
 
 List of macros:
@@ -331,13 +315,13 @@ nLines nUsed nParams Name
      2     1       0 CFG_INPUT_PINS
      4     1       0 CFG_OUTPUT_PINS
      3     1       0 CFG_LED
-     9     1       0 CFG_TIMER
-    15     1       0 CFG_TIMER_OCR
+    13     1       0 CFG_TIMER
+    10     1       0 CFG_TIMER_OCR
 
-Program             :      136 words.
+Program             :      137 words.
 Constants           :        1 words.
-Total program memory:      137 words.
+Total program memory:      138 words.
 Eeprom space        :        0 bytes.
 Data segment        :        0 bytes.
 Compilation completed, no errors.
-Compilation ended 10.08.2022, 12:03:53
+Compilation ended 11.08.2022, 10:43:12
