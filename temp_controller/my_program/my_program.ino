@@ -3,6 +3,8 @@ volatile bool converted;
 volatile bool newValue;
 volatile int value;
 
+volatile float p_value = 30;
+
 void setup()
 {
   Serial.begin(9600); // abre a porta serial a 9600 bps
@@ -21,7 +23,7 @@ void setup()
   TCCR1A = 0;
   TCCR1B = 0;
   // Set inverting mode
-  TCCR1A |= (1 << COM1A1)|(1 << COM1A0);
+  TCCR1A |= (1 << COM1A0)|(1 << COM1A1);
 
   // Set phase-correct PWM mode 
   TCCR1A |= (1 << WGM11);
@@ -32,7 +34,7 @@ void setup()
   // Set PWM frequency/top value
   ICR1 = 0xFFFF;
   // Set dutycicle 15625 -> 2 secs
-  OCR1A = 0x15625;
+  OCR1A = 15625;
   sei();
 
 }
@@ -40,7 +42,14 @@ void setup()
 void loop() {
     if (newValue) {
     newValue = false;
-    Serial.println(100*float(value)/1024);
+    float temp = 100*float(value)/1024;
+    uint16_t control = convert_desired_temp(temp);
+    Serial.print("Temp: ");
+    Serial.print(" Desire: ");
+    Serial.print(temp);
+    Serial.print(" Control: ");
+    Serial.println(convert_control(control));
+    OCR1A = control;
     delay(500);             // C5:: give you time to see the ouput
   }
   
@@ -54,6 +63,21 @@ ISR(ADC_vect){//timer1 interrupt 1Hz toggles pin 13 (LED)
   value = ADC;
   converted = true;
   newValue = true;
+}
+
+uint16_t convert_desired_temp(float delta_temp) {
+  if (delta_temp < 5) {
+    return 0x00000000;
+  }
+  else if (delta_temp > p_value) {
+    return 0xFFFFFFFF;
+  } else {
+    return (0xFFFFFFFF-2*15625)*delta_temp/p_value + 15625;
+  }
+}
+
+float convert_control(uint16_t control) {
+    return 2*float(control)/15625;
 }
 
 
