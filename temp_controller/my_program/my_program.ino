@@ -5,7 +5,7 @@
 volatile bool converted;
 volatile bool newValue;
 volatile uint16_t value;
-volatile float p_value = 20;
+volatile float p_value = 10;
 volatile float temp;
 volatile uint16_t control;
 
@@ -57,26 +57,13 @@ void convert_desired_temp(float delta_temp) {
       TCCR1B &= ~(1<<CS12);
       TCCR1B &= ~(1<<CS10);
       TCCR1A &= ~(1<<COM1A1);
-      //TCCR1B &= ~(1<<COM1A0);
-//      //TCCR1A |= (1<<COM1A0);
-//      // set on compare match 
-//      TCCR1A &= ~(1<<COM1A0);
-//      TCCR1A &= ~(1<<COM1A1);
-      PORTB = 0x00;
+      PORTB &= ~(1<<PB1);
       control = 0x00000000;
-      //digitalWrite(9,LOW);
-      //Serial.print(control);
     } else if (delta_temp > p_value) {
       TCCR1B &= ~(1<<CS12);
       TCCR1B &= ~(1<<CS10);
-      TCCR1A &= ~(1 << COM1A1);
-      PORTB = (1<<PB1);
-      // clear on compare match
-      //TCCR1A |= (1<<COM1A0);
-      //TCCR1A |= (1<<COM1A1);
-      //TCCR1A &= ~(1<<COM1A0);     
-      //TCCR1A &= ~(1<<COM1A0);
-      //digitalWrite(9,HIGH);
+      TCCR1A &= ~(1<<COM1A1);
+      PORTB |= (1<<PB1);
       control = 0xFFFFFFFF;
     } else {
       TCCR1B |= (1<<CS12)|(1<<CS10);
@@ -113,6 +100,7 @@ void loop() {
     temp = sensors.getTempCByIndex(0);  
     sensors.requestTemperaturesByIndex(0);
 }
+  delay(1000);
 }
 
 ISR(ADC_vect){
