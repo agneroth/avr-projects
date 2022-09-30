@@ -53,12 +53,15 @@ void setup()
 }
 
 void convert_desired_temp(float delta_temp) {
-    if (delta_temp < 5.0) {
+    if (delta_temp < 5.0L) {
       TCCR1B &= ~(1<<CS12);
       TCCR1B &= ~(1<<CS10);
-      //TCCR1A |= (1<<COM1A0);
-      TCCR1A &= ~(1<<COM1A0);
       TCCR1A &= ~(1<<COM1A1);
+      //TCCR1B &= ~(1<<COM1A0);
+//      //TCCR1A |= (1<<COM1A0);
+//      // set on compare match 
+//      TCCR1A &= ~(1<<COM1A0);
+//      TCCR1A &= ~(1<<COM1A1);
       PORTB = 0x00;
       control = 0x00000000;
       //digitalWrite(9,LOW);
@@ -66,16 +69,17 @@ void convert_desired_temp(float delta_temp) {
     } else if (delta_temp > p_value) {
       TCCR1B &= ~(1<<CS12);
       TCCR1B &= ~(1<<CS10);
-      PORTB = 0xFF;
-      TCCR1A |= (1<<COM1A0);
-      TCCR1A |= (1<<COM1A1);
+      TCCR1A &= ~(1 << COM1A1);
+      PORTB = (1<<PB1);
+      // clear on compare match
+      //TCCR1A |= (1<<COM1A0);
+      //TCCR1A |= (1<<COM1A1);
       //TCCR1A &= ~(1<<COM1A0);     
       //TCCR1A &= ~(1<<COM1A0);
       //digitalWrite(9,HIGH);
       control = 0xFFFFFFFF;
     } else {
       TCCR1B |= (1<<CS12)|(1<<CS10);
-      TCCR1A |= (1<<COM1A0);
       TCCR1A |= (1<<COM1A1);
       control = uint16_t((pow(2,16)-2L*15625L - 1L)*delta_temp/p_value + 15625L);
       OCR1A = control;
