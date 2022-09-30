@@ -1,13 +1,23 @@
+/*inclusão das bibliotecas necessárias*/
+#include <OneWire.h>  
+#include <DallasTemperature.h>
 
 volatile bool converted;
 volatile bool newValue;
-volatile int value;
+volatile uint16_t value;
+volatile float p_value = 20;
+volatile float temp;
+volatile uint16_t control;
 
-volatile float p_value = 30;
+#define temp_wire 2 
+
+OneWire oneWire(temp_wire);
+DallasTemperature sensors(&oneWire);
 
 void setup()
 {
   Serial.begin(9600); // abre a porta serial a 9600 bps
+  sensors.begin(); /*inicia biblioteca*/
 
   // Select A0
   ADMUX |= (1<<REFS0);
@@ -23,7 +33,8 @@ void setup()
   TCCR1A = 0;
   TCCR1B = 0;
   // Set inverting mode
-  TCCR1A |= (1 << COM1A0)|(1 << COM1A1);
+  TCCR1A |= (1 << COM1A1);
+  //TCCR1A |= (1 << COM1A0);
 
   // Set phase-correct PWM mode 
   TCCR1A |= (1 << WGM11);
@@ -35,50 +46,79 @@ void setup()
   ICR1 = 0xFFFF;
   // Set dutycicle 15625 -> 2 secs
   OCR1A = 15625;
+  
+  sensors.requestTemperaturesByIndex(0);
+  sensors.setResolution(9);
   sei();
+}
 
+void convert_desired_temp(float delta_temp) {
+    if (delta_temp < 5.0) {
+      TCCR1B &= ~(1<<CS12);
+      TCCR1B &= ~(1<<CS10);
+      //TCCR1A |= (1<<COM1A0);
+      TCCR1A &= ~(1<<COM1A0);
+      TCCR1A &= ~(1<<COM1A1);
+      PORTB = 0x00;
+      control = 0x00000000;
+      //digitalWrite(9,LOW);
+      //Serial.print(control);
+    } else if (delta_temp > p_value) {
+      TCCR1B &= ~(1<<CS12);
+      TCCR1B &= ~(1<<CS10);
+      PORTB = 0xFF;
+      TCCR1A |= (1<<COM1A0);
+      TCCR1A |= (1<<COM1A1);
+      //TCCR1A &= ~(1<<COM1A0);     
+      //TCCR1A &= ~(1<<COM1A0);
+      //digitalWrite(9,HIGH);
+      control = 0xFFFFFFFF;
+    } else {
+      TCCR1B |= (1<<CS12)|(1<<CS10);
+      TCCR1A |= (1<<COM1A0);
+      TCCR1A |= (1<<COM1A1);
+      control = uint16_t((pow(2,16)-2L*15625L - 1L)*delta_temp/p_value + 15625L);
+      OCR1A = control;
+    }
+}
+
+float convert_control(uint16_t control) {
+    return 2*float(control)/15625L;
 }
 
 void loop() {
     if (newValue) {
     newValue = false;
-    float temp = 100*float(value)/1024;
-    uint16_t control = convert_desired_temp(temp);
-    Serial.print("Temp: ");
-    Serial.print(" Desire: ");
+    float desired_temp = float(value) * 100L / 1023L;
+    float delta_temp = desired_temp - temp;
+    convert_desired_temp(delta_temp);
+
     Serial.print(temp);
-    Serial.print(" Control: ");
+    Serial.print(" ");
+    Serial.print(desired_temp);
+    Serial.print(" ");
     Serial.println(convert_control(control));
-    OCR1A = control;
-    delay(500);             // C5:: give you time to see the ouput
   }
   
   if (converted) {
-    ADCSRA |= (1<<ADSC|1<<ADIE);   // C4:: start converting voltage on A0
+    ADCSRA |= (1<<ADSC)|(1<<ADIE);   // C4:: start converting voltage on A0
     converted = false;
   }
+
+  if (sensors.getWaitForConversion()) {
+    temp = sensors.getTempCByIndex(0);  
+    sensors.requestTemperaturesByIndex(0);
+}
 }
 
-ISR(ADC_vect){//timer1 interrupt 1Hz toggles pin 13 (LED)
+ISR(ADC_vect){
   value = ADC;
   converted = true;
   newValue = true;
 }
 
-uint16_t convert_desired_temp(float delta_temp) {
-  if (delta_temp < 5) {
-    return 0x00000000;
-  }
-  else if (delta_temp > p_value) {
-    return 0xFFFFFFFF;
-  } else {
-    return (0xFFFFFFFF-2*15625)*delta_temp/p_value + 15625;
-  }
-}
 
-float convert_control(uint16_t control) {
-    return 2*float(control)/15625;
-}
+
 
 
 

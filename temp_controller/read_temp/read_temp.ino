@@ -14,14 +14,17 @@
 OneWire oneWire(dados);  /*Protocolo OneWire*/
 /********************************************************************/
 DallasTemperature sensors(&oneWire); /*encaminha referências OneWire para o sensor*/
+
+volatile uint8_t id = 0;
 /********************************************************************/ 
-void setup(void) /*laço de configuração*/
+void setup() /*laço de configuração*/
 { 
  Serial.begin(9600); /*definição de Baudrate de 9600*/
  sensors.begin(); /*inicia biblioteca*/
+ sensors.getAddress(id,id);
+ //sensors.getTempC()
 } 
-void loop(void) /*laço de repetição*/
-{ 
+void loop(){ 
  sensors.requestTemperatures();
- Serial.println(sensors.getTempCByIndex(0)); /* Endereço do sensor */
+ Serial.println(id); /* Endereço do sensor */
 }
