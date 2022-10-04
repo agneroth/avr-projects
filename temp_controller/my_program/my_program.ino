@@ -22,7 +22,7 @@ void setup()
   // Select A0
   ADMUX |= (1<<REFS0);
   // Enable ADC; Prescaler = 128; Enable Interrupt;
-  ADCSRA |= (1<<ADEN)|(1<<ADSC)|(1<<ADIE)|(1<<ADPS2)|(1<<ADPS1)|(1<<ADPS0); // 0xC7 = 0b11000111 
+  ADCSRA |= (1<<ADEN)|(1<<ADSC)|(1<<ADIE);//(1<<ADPS2)|(1<<ADPS1)|(1<<ADPS0); // 0xC7 = 0b11000111 
   // Set trigger on TIMER1 match B
   ADCSRB |= (1<<ADTS2)|(1<<ADTS0);
 
@@ -52,24 +52,47 @@ void setup()
   sei();
 }
 
+void disable_pwm() {
+    TCCR1B &= ~(1<<CS12);
+    TCCR1B &= ~(1<<CS10);
+    TCCR1A &= ~(1<<COM1A1);
+}
+
+void enable_pwm() {
+    TCCR1B |= (1<<CS12)|(1<<CS10);
+    TCCR1A |= (1<<COM1A1);
+}
+
+void pwm_pin_power_off() {
+    PORTB &= ~(1<<PB1);
+    control = 0x0000;
+}
+
+void pwm_pin_power_on() {
+    PORTB |= (1<<PB1);
+    control = 0xFFFF;
+}
+
+
 void convert_desired_temp(float delta_temp) {
-    if (delta_temp < 5.0L) {
-      TCCR1B &= ~(1<<CS12);
-      TCCR1B &= ~(1<<CS10);
-      TCCR1A &= ~(1<<COM1A1);
-      PORTB &= ~(1<<PB1);
-      control = 0x00000000;
+    if (delta_temp < 1.0L) {
+      disable_pwm();
+      pwm_pin_power_off();
     } else if (delta_temp > p_value) {
-      TCCR1B &= ~(1<<CS12);
-      TCCR1B &= ~(1<<CS10);
-      TCCR1A &= ~(1<<COM1A1);
-      PORTB |= (1<<PB1);
-      control = 0xFFFFFFFF;
+      disable_pwm();
+      pwm_pin_power_on();
     } else {
-      TCCR1B |= (1<<CS12)|(1<<CS10);
-      TCCR1A |= (1<<COM1A1);
+      enable_pwm();
       control = uint16_t((pow(2,16)-2L*15625L - 1L)*delta_temp/p_value + 15625L);
-      OCR1A = control;
+      if (control < 15625) {
+        disable_pwm();
+        pwm_pin_power_off();
+      } else if (control > 0xFFFF - 15625) {
+        disable_pwm();
+        pwm_pin_power_on();
+      } else {
+        OCR1A = control;
+      }
     }
 }
 
